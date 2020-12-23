@@ -19,7 +19,6 @@
 
 #include "emimicon.h"
 
-#include <magic.h>
 #include <sys/vfs.h>
 #include <sys/stat.h>
 #include <QFile>
@@ -47,6 +46,8 @@
 #include <QApplication>
 #include <QMessageAuthenticationCode>
 #include <QMessageBox>
+#include <QMimeType>
+#include <QMimeDatabase>
 
 Q_GLOBAL_STATIC(EMimIcon, EMimIconInstance)
 EMimIcon *EMimIcon::instance()
@@ -366,38 +367,14 @@ QIcon EMimIcon::iconByMimType(const QString &mim,const QString &f)
 //______________________________________________________________________________________
 QString EMimIcon::getMimeTypeByFile(QString fileName)
 {
+    QMimeDatabase db;
+    QMimeType type = db.mimeTypeForFile(fileName);
+    qDebug() << "Mime type:" << type.name();
 
-     //-----------MAGIC----------------------
-    // magic_t cookie = magic_open(MAGIC_MIME);
-     magic_t cookie = magic_open(MAGIC_MIME_TYPE);
-
-     magic_load(cookie, nullptr);
-     QString temp = magic_file(cookie, fileName.toLocal8Bit());
-
-     magic_close(cookie);
-     //qDebug()<<"magic"<<temp;
-    // QString rsl=temp.left(temp.indexOf(";"));
-     QString rsl=temp;
-
-     //    QString mim=iconName(rsl);
-     //      qDebug()<<"by mime"<<icon;
-     if(rsl.isEmpty())
-          return  "unknown";
-
-     return  rsl;
-
-     /*
-    //--------------XDGMIME-------------------
-    QProcess process;
-    process.start(QString("xdg-mime query filetype %1").arg("\""+fileName+"\""));
-    process.waitForFinished(80);
-    QString result= process.readAll();
-
-    result=result.section(";",0,0); // value "application/x-unknow"
-
-
-    return (result);
-    */
+    if (!type.isValid())
+        return QStringLiteral("unknown");
+    else
+        return type.name();
 }
 
 //______________________________________________________________________________________
