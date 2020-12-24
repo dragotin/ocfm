@@ -5,8 +5,8 @@ SUBDIRS	    =\
     elokab-fm \
      elokab-fa
 
-CONFIG += qt \
-          release
+CONFIG += qt
+CONFIG += debug
 
 
 INCLUDEPATH +=common\

@@ -230,7 +230,7 @@ void PageWidget::customContextMenu(QPoint)
     if(idx.isValid())
         mim=idx.data(D_MMIM).toString();
     else
-        mim=EMimIcon::mimeTyppe(info);
+        mim=EMimIcon::mimeType(info.absoluteFilePath(), info.isDir(), false);
 
 //![0] search  *****************************************************
     if(isSearch){
@@ -1000,7 +1000,7 @@ void PageWidget::showOpenwithDlg(const QString &fileName)
     if(idx.isValid())
         mim=idx.data(D_MMIM).toString();
     else
-        mim=EMimIcon::mimeTyppe(QFileInfo(fileName));
+        mim=EMimIcon::mimeType(fileName, QFileInfo(fileName).isDir(), false);
 
     if(!openWithDlg)
         openWithDlg =new OpenWithDlg();

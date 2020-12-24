@@ -45,7 +45,7 @@ private:
     QHash<QString, QString> *mimcach;
 
       //! جلب نوع الملف بلغة المظام
-    QString localeType(const QFileInfo &info)const;
+    QString localeType(const QFileInfo &info, bool isDehydrated)const;
 
 
 

@@ -188,7 +188,7 @@ QIcon ItemDelegate::decoration(const QModelIndex &index)const
 
     //---------------------------------------
     QString mim;
-    if(isSym)  mim= EMimIcon::mimeTyppe(info);
+    if(isSym)  mim= EMimIcon::mimeType(info.absoluteFilePath(), info.isDir(), false);
     else  mim= index.data(D_MMIM).toString();
 
     //---------------------------------------X-DESKTOP

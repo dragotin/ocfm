@@ -133,7 +133,7 @@ void FileInformation::setFileInformation(const QFileInfo &fi)
 {
 
 
-    QString mim=EMimIcon::mimeTyppe(fi);
+    QString mim=EMimIcon::mimeType(fi.absoluteFilePath(), fi.isDir(), false);
     bool hasImage=false;
     bool hasAudio=false;
     QPixmap pix;

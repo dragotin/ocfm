@@ -252,16 +252,12 @@ void PathWidget::setupToolUrl(const QString &url)
     }
     QFontMetrics fm(mToolBar->font());
 
-
-
     QDir dir(urlBtn);
     if(!dir.exists()) return;
 
     QString text=dir.dirName();
     if(dir==QDir::rootPath())
         text=tr("Root");
-
-
 
     while (dir.cdUp()) {
 
@@ -280,8 +276,12 @@ void PathWidget::setupToolUrl(const QString &url)
 
         act->setData(dir.absolutePath());
         act->setCheckable(true);
+        auto actions = mToolBar->actions();
         //act->setMenu(menuDirs(dir));
-        mToolBar->insertAction(mToolBar->actions().first(),act);
+        if (actions.size() > 0)
+            mToolBar->insertAction(actions.first(),act);
+        else
+            mToolBar->addAction(act);
         //mToolBar->addAction(act);
         actionsGroup->addAction(act);
 

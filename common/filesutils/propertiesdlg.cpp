@@ -60,7 +60,7 @@ PropertiesDlg::PropertiesDlg(const QStringList &urls, QWidget *parent) :
           QDateTime lasttime=fi.lastRead();
           ui->labelModified->setText(time.toString("dd.MM.yyyy hh:mm"));
           ui->labellastRead->setText(lasttime.toString("dd.MM.yyyy hh:mm"));
-           mMim=EMimIcon::mimeTyppe(fi);
+          mMim=EMimIcon::mimeType(fi.absoluteFilePath(), fi.isDir(), false);
           ui->labelType->setText(EMimIcon::mimLang(mMim/*,locale().name().section("_",0,0)*/));
           mIcon=EMimIcon::icon(fi);
            ui->toolButton->setIcon(mIcon);

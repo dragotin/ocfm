@@ -15,8 +15,9 @@ TEMPLATE = app
 
 DESTDIR = ../usr/bin
 
-CONFIG += qt \
-          release
+CONFIG += qt
+CONFIG += debug
+
 CONFIG += thread
 OBJECTS_DIR = build
 MOC_DIR = build

@@ -234,7 +234,7 @@ QStringList SearchView::findFiles(const QStringList &files, const QString &text)
 
           QFile file(mCurrentDir.absoluteFilePath(files[i]));
           QFileInfo fi(file.fileName());
-          QString mim=EMimIcon::mimeTyppe(fi);
+          QString mim=EMimIcon::mimeType(fi.absoluteFilePath(), fi.isDir(), false); // FIXME
 
           if(mim.contains("text")||plainTextList.contains(mim))
           {
@@ -335,17 +335,15 @@ int SearchView::selectedFilesCount()
 //______________________________________________________________________________________
 void SearchView::lanchApp(QTreeWidgetItem* item,int)
 {
-     QFileInfo info(item->data(0,Qt::UserRole).toString());
-     if(info.isDir())
-     {
-          emit  setUrl(info.absoluteFilePath());
-     }else{
-
-          QString mim=EMimIcon::mimeTyppe(info);
-          if (EMimIcon::launchApp(info.absoluteFilePath(),mim)==false)
-               emit  showOpenwithDlg(info.absoluteFilePath());
-
-     }
+    QFileInfo info(item->data(0,Qt::UserRole).toString());
+    if(info.isDir()) {
+        emit  setUrl(info.absoluteFilePath());
+    } else {
+        const QString filePath = info.absoluteFilePath();
+        QString mim=EMimIcon::mimeType(filePath, info.isDir(), false);
+        if (EMimIcon::launchApp(filePath,mim)==false)
+            emit  showOpenwithDlg(filePath);
+    }
 
 }
 

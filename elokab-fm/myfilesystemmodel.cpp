@@ -14,7 +14,7 @@
 
 
 MyFileSystemModel::MyFileSystemModel(QObject *parent):
-     QFileSystemModel(parent)
+    QFileSystemModel(parent)
 {
 
     mimcach=new QHash<QString,QString>;
@@ -23,84 +23,119 @@ MyFileSystemModel::MyFileSystemModel(QObject *parent):
     setReadOnly(false);
     setResolveSymlinks(true);
 
-   // Messages::debugMe(0,__LINE__,"MyFileSystemModel",__FUNCTION__,"End");
+    // Messages::debugMe(0,__LINE__,"MyFileSystemModel",__FUNCTION__,"End");
 }
 
 //--------------------------------------------------------------
 QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
 {
-
-
+    bool _currentPathIsOwnCloud {true}; // assume for the moment
+    const int DehydrateLength = 9; // length of the string '.owncloud'
 
     if (!index.isValid())  return QVariant();
+    QFileInfo fi = fileInfo(index);
 
+    bool dehydrated {false};
+    if (_currentPathIsOwnCloud) {
+        QString fName = fi.fileName();
+        if (fName.endsWith(".owncloud")) {
+            dehydrated = true;
+        }
+    }
 
-    if(index.column()==D_COL_NAME && role == Qt::ToolTipRole){
-        return fileName(index);
-    }// column 0
+    if((index.column()==D_COL_NAME && role == Qt::ToolTipRole)){
+        QString fName = fi.fileName();
+        if (_currentPathIsOwnCloud && dehydrated) {
+            fName.chop(DehydrateLength); // remove the .owncloud
+            fName.append( tr(" (dehydrated)"));
+        }
+        return fName;
+    }
 
     //تحميل نوع الملف بالغة النظام
-    if(index.column()==D_COL_TYPE && role == Qt::DisplayRole){
-       return localeType(fileInfo(index));
-
+    if((index.column()==D_COL_TYPE && role == Qt::DisplayRole) || role == D_MTYPE) {
+        return localeType(fi, dehydrated);
     }// column 2
 
     if( /*index.column()==0 &&*/role == D_MMIM){
 
         if(mimcach->contains(filePath(index))){
 
-           return mimcach->value(filePath(index));
+            return mimcach->value(filePath(index));
         }else{
-            QString mim=EMimIcon::mimeTyppe(fileInfo(index));
+            QFileInfo fi(fileInfo(index));
+            QString fName = fileName(index);
+            if (fName.endsWith(".owncloud")) {
+                fName.chop(6);
+            }
+            fi.setFile(fName);
+            QString mim=EMimIcon::mimeType(fi.absoluteFilePath(), fi.isDir(), false);
             mimcach->insert(filePath(index),mim);
-           // qDebug()<<"mim from EMimIcon"<<mim;
+            // qDebug()<<"mim from EMimIcon"<<mim;
             return mim;
         }
 
     }
 
-    if(/*index.column()==0 && */role == D_MTYPE){
-
-        return localeType(fileInfo(index));
-
-    }
-
-    if(/*index.column()==0 && */role == D_MSize){
+    if(index.column()==D_COL_SIZE && (role == D_MSize || role == Qt::DisplayRole)){
 
         if(fileInfo(index).isDir())return QVariant();
-        return EMimIcon::formatSize(size(index));
+        qint64 size = fi.size();
+        if (dehydrated)
+            return tr("dehydrated");
+        return EMimIcon::formatSize(size);
     }
 
     if(index.column()==D_COL_TRASHED && role == Qt::DisplayRole){
-       return EMimIcon::trachInfo(filePath(index)).value("date");
+        return EMimIcon::trachInfo(filePath(index)).value("date");
     }
 
     if(index.column()==D_COL_ORIGPATH && role == Qt::DisplayRole){
         QString fp=EMimIcon::trachInfo(filePath(index)).value("path");
-       return QFileInfo(fp).path();
+        return QFileInfo(fp).path();
 
     }
 
-    return QFileSystemModel::data(index,role);
+    if (index.column() == D_COL_NAME) {
+        if (role == QFileSystemModel::FilePathRole || role == Qt::EditRole || role == Qt::DisplayRole) {
+            if (!fi.isDir() && _currentPathIsOwnCloud && dehydrated) {
+                QString file = fi.fileName();
+                if (file.length() > DehydrateLength)
+                    file.chop(DehydrateLength);
+                return file;
+            }
+        }
+    }
+    const QVariant re = QFileSystemModel::data(index,role);
+
+    if (re.toString().endsWith(".owncloud")) {
+        qDebug() << "XXXXXXX";
+    }
+
+    return re;
 
 
 }// MyFileSystemModel::data
 
-QString MyFileSystemModel::localeType(const QFileInfo &info) const
+QString MyFileSystemModel::localeType(const QFileInfo &info, bool isDehydrated) const
 {
-            QString mim;
-            if(mimcach->contains(info.filePath()))
-                mim=mimcach->value(info.filePath());
-            else
-                mim=EMimIcon::mimeTyppe(info);
+    QString mim;
+    QString file = info.filePath();
+    if (isDehydrated) {
+        file.chop(9);
+    }
+    if(mimcach->contains(file))
+        mim=mimcach->value(file);
+    else
+        mim=EMimIcon::mimeType(file, info.isDir(), false); // FIXME
 
 
-           QString mimLang=EMimIcon::mimLang(mim);
-         //  qDebug()<<"localeType"<<info.filePath()<<mim<<mimLang;
-             if(mimLang.isEmpty())
-                return type(index(info.filePath()));
+    QString mimLang=EMimIcon::mimLang(mim);
+    //  qDebug()<<"localeType"<<info.filePath()<<mim<<mimLang;
+    if(mimLang.isEmpty())
+        return type(index(info.filePath()));
 
-               return mimLang;
+    return mimLang;
 }
 
 //--------------------------------------------------------------
@@ -130,7 +165,7 @@ int MyFileSystemModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED ( parent )
 
-        return 6;
+    return 6;
 
 
 }
@@ -146,7 +181,7 @@ bool MyFileSystemModel::dropMimeData(const QMimeData * data,
     Q_UNUSED ( action )
     Q_UNUSED ( row )
     Q_UNUSED ( column )
-//Messages::debugMe(0,__LINE__,"MyFileSystemModel",__FUNCTION__);
+    //Messages::debugMe(0,__LINE__,"MyFileSystemModel",__FUNCTION__);
 
     if(isDir(parent))
     {
@@ -173,7 +208,7 @@ bool MyFileSystemModel::dropMimeData(const QMimeData * data,
 
     }
 
-//    Messages::debugMe(0,__LINE__,"MyFileSystemModel",__FUNCTION__,"End");
+    //    Messages::debugMe(0,__LINE__,"MyFileSystemModel",__FUNCTION__,"End");
 
     return false;
 }

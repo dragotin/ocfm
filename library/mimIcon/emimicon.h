@@ -60,7 +60,7 @@ public:
     QHash<QString,QIcon> iconhash(const QFileInfo &info, bool previw);
 
     //!
-    static QString mimeTyppe(const QFileInfo &info);
+    static QString mimeType(const QString& filePath, bool isDir, bool isDehydrated);
 
     //!
     static QIcon  iconFolder(const QString &f);
@@ -69,7 +69,7 @@ public:
     static QIcon iconSymLink(QIcon icon);
 
     //!
-    static  QByteArray iconThumbnails(const QString &file);
+    static  QByteArray iconThumbnails(const QFileInfo &fileInfo);
 
     //!
     static QIcon iconColorized(QIcon icon, QColor color);

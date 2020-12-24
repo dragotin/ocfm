@@ -79,12 +79,12 @@ QIcon EMimIcon::icon(const QFileInfo &info, bool previw)
         if(minfo.suffix().toLower()=="desktop")
             return iconDesktopFile(minfo.absoluteFilePath()).pixmap(128);
 
-        QString mim=mimeTyppe(minfo);
+        QString mim=mimeType(minfo.absoluteFilePath(), minfo.isDir(), false); // FIXME
 
         if(previw && mim.startsWith("image"))
         {
             QPixmap pix;
-            pix.loadFromData(iconThumbnails(minfo.absoluteFilePath()));
+            pix.loadFromData(iconThumbnails(minfo));
             QIcon icon=QIcon(pix);
             if(!icon.isNull())
                 retIcon=icon;
@@ -127,12 +127,12 @@ QHash<QString,QIcon> EMimIcon::iconhash(const QFileInfo &info, bool previw)
 
             return hash;
         }
-        QString mim=mimeTyppe(minfo);
+        QString mim=mimeType(minfo.absoluteFilePath(), minfo.isDir(), false); // FIXME isDehydrated.
 
         if(previw && mim.startsWith("image"))
         {
            QPixmap pix;
-           pix.loadFromData(iconThumbnails(minfo.absoluteFilePath()));
+           pix.loadFromData(iconThumbnails(minfo));
             QIcon icon=QIcon(pix);
 
            // QIcon icon=Thumbnails(minfo.absoluteFilePath());
@@ -154,19 +154,30 @@ QHash<QString,QIcon> EMimIcon::iconhash(const QFileInfo &info, bool previw)
 
 }
 //______________________________________________________________________________________
-QString EMimIcon::mimeTyppe(const QFileInfo &info)
+QString EMimIcon::mimeType(const QString& filePath, bool isDir, bool isDehydrated)
 {
-    if (info.isDir())
+    if (isDir)
         return "inode/directory";
 
     QString mim;
-    QString suf=info.suffix().toLower();
-    if(!suf.isEmpty()) mim= getMimeTypeBySufix(suf);
+    QString suf;
+    QString origFile{filePath};
 
-    if(!mim.isEmpty())return mim;
+    if (isDehydrated) {
+        origFile.chop(9);
+    }
+    int pointPos = origFile.lastIndexOf('.');
+    if (pointPos > -1) {
+        suf = origFile.mid(pointPos).toLower();
+    }
 
-    return getMimeTypeByFile(info.absoluteFilePath());
+    if (!suf.isEmpty())
+        mim= getMimeTypeBySufix(suf);
 
+    if (!mim.isEmpty())
+        return mim;
+
+    return getMimeTypeByFile(filePath);
 }
 
 //______________________________________________________________________________________
@@ -255,12 +266,10 @@ QIcon EMimIcon::iconSymLink(QIcon icon)
 }
 
 //______________________________________________________________________________________
-QByteArray EMimIcon::iconThumbnails(const QString &file)
+QByteArray EMimIcon::iconThumbnails(const QFileInfo &fileInfo)
 {
-    QFileInfo fi(file);
-
     QMessageAuthenticationCode code(QCryptographicHash::Md5);
-    code.addData(file.toLatin1());
+    code.addData(fileInfo.absoluteFilePath().toLatin1());
 
    // QByteArray text=file.toUtf8();
 
@@ -276,7 +285,7 @@ QByteArray EMimIcon::iconThumbnails(const QString &file)
     if(QFile::exists(fileThumbnail)){
         QImageReader reader(fileThumbnail);
         QString fModified=reader.text("DATETIME");
-        if(fModified== fi.lastModified().toString("dd MM yyyy hh:mm:ss")){
+        if(fModified== fileInfo.lastModified().toString("dd MM yyyy hh:mm:ss")){
             pix.load(fileThumbnail);
             hasThumb=true;
         }
@@ -286,11 +295,11 @@ QByteArray EMimIcon::iconThumbnails(const QString &file)
 
    if(!hasThumb){
 
-      QImageReader reader(file);
+      QImageReader reader(fileInfo.absoluteFilePath());
 
      //  pix.load((file));
        if(qMax(reader.size().width(),reader.size().height())<=128){
-           pix.load((file));
+           pix.load((fileInfo.absoluteFilePath()));
        }
    }
 
@@ -543,8 +552,7 @@ QString EMimIcon::desktopFilePath(const QString &file)
 //______________________________________________________________________________________
 void EMimIcon::launchApplication(const QString & fileName)
 {
-     QFileInfo fi(fileName);
-     launchApp(fileName,mimeTyppe(fi)) ;
+     launchApp(fileName,mimeType(fileName, false, false)) ;
 }
 
 //______________________________________________________________________________________
