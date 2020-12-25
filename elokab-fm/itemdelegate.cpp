@@ -35,12 +35,15 @@
 #include <QImageReader>
 #include <QtConcurrent>
 #include <QMessageAuthenticationCode>
+#include <QFileIconProvider>
+#include <QFileSystemModel>
 
 //____________________________________________________________________
 ItemDelegate::ItemDelegate(bool modern):isTreeview(false),isModernMode(modern)
 {
 
     mSymlinkIcon=EIcon::fromTheme("emblem-symbolic-link");
+    mOwncloudIcon=EIcon::fromTheme("cloudstatus");
    // mSymlinkIcon=EIcon::fromTheme("inode-symlink");//application-x-zerosize
 
     imageCache  =new QMap<QString ,QIcon>  ;
@@ -181,70 +184,76 @@ QIcon ItemDelegate::decoration(const QModelIndex &index)const
         }
     }
 
-    QIcon retIcon;
-
     //--------------------------------------- DIRECTORY
-    if(info.isDir()) { return EMimIcon::iconFolder(filePath); }
+    if(info.isDir()) {
+        return EMimIcon::iconFolder(filePath);
+    }
 
     //---------------------------------------
     QString mim;
-    if(isSym)  mim= EMimIcon::mimeType(info.absoluteFilePath(), info.isDir(), false);
-    else  mim= index.data(D_MMIM).toString();
+    if(isSym)
+        mim= EMimIcon::mimeType(info.absoluteFilePath(), info.isDir(), false);
+    else
+        mim= index.data(D_MMIM).toString();
 
-    //---------------------------------------X-DESKTOP
-    if( mim=="application/x-desktop"){
-        if(deskCache->contains(filePath)) return deskCache->value(filePath);
+    if (mim=="application/x-desktop") {
+        //---------------------------------------X-DESKTOP
+        if(deskCache->contains(filePath))
+            return deskCache->value(filePath);
 
-        retIcon=  EMimIcon::iconDesktopFile(filePath).pixmap(128).scaled(128,128);
+        QIcon icon = EMimIcon::iconDesktopFile(filePath).pixmap(128).scaled(128,128);
 
-        if(!retIcon.isNull())  deskCache->insert(filePath,retIcon);
+        if(!icon.isNull())
+            deskCache->insert(filePath,icon);
 
-        return retIcon;
+        return icon;
     }
 
-    //---------------------------------------THUMBNAILS
+
+        //---------------------------------------THUMBNAILS
+    if(imageCache->contains(filePath)) return imageCache->value(filePath);
+
+    QIcon retIcon;
     if(mThumbnail)
     {
         //--------------------------------------- IMAGES TYPE
         if( mim.startsWith(D_IMAGE_TYPE) )
         {
-            if(imageCache->contains(filePath)) return imageCache->value(filePath);
-            if( QImageReader::supportedMimeTypes().contains(mim.toLatin1()))
-               { retIcon=iconThumbnails(filePath,D_IMAGE_TYPE); }
+            if( QImageReader::supportedMimeTypes().contains(mim.toLatin1())) {
+                retIcon=iconThumbnails(filePath,D_IMAGE_TYPE);
+            }
         }// image
 
         //--------------------------------------- PDF TYPE
         else if( mPdfThumbnail && mim.endsWith(D_PDF_TYPE) )
         {
-            if(imageCache->contains(filePath)) return imageCache->value(filePath);
             retIcon=iconThumbnails(filePath,D_PDF_TYPE);
         }// pdf
 
         //--------------------------------------- VIDEO TYPE
         else if(mVideoThumbnail && mim.startsWith(D_VIDEO_TYPE) )
         {
-            if(imageCache->contains(filePath)) return imageCache->value(filePath);
             retIcon=iconThumbnails(filePath,D_VIDEO_TYPE);
         }// video
 
-        //--------------------------------------- CACHE
-        if(!retIcon.isNull()){
-            imageCache->insert(filePath,retIcon);
-            return retIcon;
+        if (!retIcon.isNull()) {
+            imageCache->insert(filePath, retIcon);
         }
     }// mThumbnail
 
     //--------------------------------------- OTHER TYPE
-    if(iconCache->contains(mim))
+    if(retIcon.isNull() && iconCache->contains(mim))
         return iconCache->value(mim);
 
-    retIcon=EMimIcon::iconByMimType(mim,filePath);
+    if(retIcon.isNull()) {
+        retIcon=EMimIcon::iconByMimType(mim,filePath);
+        iconCache->insert(mim, retIcon);
+    }
 
-    // ---------------iconCach---------------------
-    if(!retIcon.isNull()){ iconCache->insert(mim,retIcon); return retIcon; }
-
-    return QIcon::fromTheme("unknon");
-
+    if(retIcon.isNull()) {
+        retIcon = QIcon::fromTheme("unknown");
+    }
+    return retIcon;
 }
 
 //______________________________________________________________________________
@@ -280,6 +289,7 @@ void ItemDelegate::paintIconView(QPainter *painter, const QStyleOptionViewItem &
 {
 
     QSize itemSize=QSize(option.rect.width(),option.rect.height());
+    bool isOwnClouded = index.data(D_OWNCLOUD).toBool();
 
     // المتغيرات--------------------------------------
     QTextOption textOption;
@@ -287,106 +297,113 @@ void ItemDelegate::paintIconView(QPainter *painter, const QStyleOptionViewItem &
     QFontMetrics fm1=option.fontMetrics;
     QString filePath=index.data(D_MFPATH).toString();
     QFileInfo fn(filePath);
-    QIcon ico;
-    ico=decoration(index);
+
+    QIcon ico=decoration(index);
     if(ico.isNull())
         ico=EIcon::fromTheme("application-octet-stream","unknon");
 
     QPixmap pixmap = ico.pixmap(option.decorationSize,iconModeFromState(option.state));
 
-        //  painter->save();
-        painter->setClipRect(option.rect);
+    //  painter->save();
+    painter->setClipRect(option.rect);
 
-        //رسم التحديد
-//        if((option.state & QStyle::State_Selected) )
-//            painter->fillRect(option.rect, option.palette.highlight());
+    //رسم التحديد
+    //        if((option.state & QStyle::State_Selected) )
+    //            painter->fillRect(option.rect, option.palette.highlight());
 
-        // draw the icon
-        QPoint iconPos(option.rect.x() + (option.rect.width() - option.decorationSize.width()) / 2, option.rect.y() + D_MARGINS);
-        // in case the pixmap is smaller than the requested size
-        QSize margin = ((option.decorationSize - pixmap.size()) / 2).expandedTo(QSize(0, 0));
+    // draw the icon
+    QPoint iconPos(option.rect.x() + (option.rect.width() - option.decorationSize.width()) / 2, option.rect.y() + D_MARGINS);
+    // in case the pixmap is smaller than the requested size
+    QSize margin = ((option.decorationSize - pixmap.size()) / 2).expandedTo(QSize(0, 0));
 
 
-         //----------------  ModernMode  --------------------------
-        //draw RoundedRect if isModernMode in item area
-        if(isModernMode){
-            QRect rectborder=option.rect;
-            rectborder.adjust(0,0,-1,-1);
-            painter->setOpacity(0.3);
-            painter->setPen(option.palette.highlight().color());
-            painter->drawRoundedRect(rectborder,qreal(2.0),qreal(2.0));
-            if(option.state & QStyle::State_Selected){
-               rectborder.adjust(1,1,0,0);
-               painter->fillRect(rectborder,option.palette.highlight());
-            }
-            painter->setOpacity(1.0);
+    //----------------  ModernMode  --------------------------
+    //draw RoundedRect if isModernMode in item area
+    if(isModernMode){
+        QRect rectborder=option.rect;
+        rectborder.adjust(0,0,-1,-1);
+        painter->setOpacity(0.3);
+        painter->setPen(option.palette.highlight().color());
+        painter->drawRoundedRect(rectborder,qreal(2.0),qreal(2.0));
+        if(option.state & QStyle::State_Selected){
+            rectborder.adjust(1,1,0,0);
+            painter->fillRect(rectborder,option.palette.highlight());
         }
-         //------------------------------------------------------------
+        painter->setOpacity(1.0);
+    }
+    //------------------------------------------------------------
 
-        //رسم ايقونة مخفية
-        if(fn.isHidden())
-            painter->setOpacity(0.5);
+    //رسم ايقونة مخفية
+    if(fn.isHidden())
+        painter->setOpacity(0.5);
 
-        painter->drawPixmap(iconPos + QPoint(margin.width(), margin.height()), pixmap);
+    painter->drawPixmap(iconPos + QPoint(margin.width(), margin.height()), pixmap);
 
-        //رسم اشارة الى ملف
-        if(fn.isSymLink())
-            painter->drawPixmap(iconPos, mSymlinkIcon.pixmap(option.decorationSize / 2, iconModeFromState(option.state)));
+    //رسم اشارة الى ملف
+    if(fn.isSymLink())
+        painter->drawPixmap(iconPos, mSymlinkIcon.pixmap(option.decorationSize / 2, iconModeFromState(option.state)));
 
-        //------------------------  رسم النص  --------------------------
-        //مربع النص
-        QRect textRect(option.rect.x() + (option.rect.width() - itemSize.width()) / 2,
-                        option.rect.y() + D_MARGINS + option.decorationSize.height(),
-                        itemSize.width(),
-                        itemSize.height() - option.decorationSize.height());
+    if (isOwnClouded) {
+        QPoint p(iconPos);
+        p.setX(p.x()+option.decorationSize.width()-D_MARGINS-option.decorationSize.width()/3);
+        p.setY(p.y()+option.decorationSize.height()-D_MARGINS-option.decorationSize.height()/3);
 
-
-        textOption.setAlignment(Qt::AlignHCenter);
-
-        //رسم التحديد على مربع النص
-        if((option.state & QStyle::State_Selected) )
-            painter->fillRect(textRect, option.palette.highlight());
-
-        //لون النص عند التحديد او الوضع العادي
-        if(option.state & QStyle::State_Selected)
-            painter->setPen(option.palette.color( QPalette::HighlightedText));
-        else
-            painter->setPen(option.palette.color( QPalette::Text));
+        painter->drawPixmap(p, mOwncloudIcon.pixmap(option.decorationSize/3, iconModeFromState(option.state)));
+    }
+    //------------------------  رسم النص  --------------------------
+    //مربع النص
+    QRect textRect(option.rect.x() + (option.rect.width() - itemSize.width()) / 2,
+                   option.rect.y() + D_MARGINS + option.decorationSize.height(),
+                   itemSize.width(),
+                   itemSize.height() - option.decorationSize.height());
 
 
-        //qDebug()<<"draw"<<txt<<textRect.height();
+    textOption.setAlignment(Qt::AlignHCenter);
 
-        //----------------  ModernMode  --------------------------
-         if(isModernMode){
-             painter->setOpacity(0.1);
-             painter->fillRect(textRect, option.palette.highlight());
-              painter->setOpacity(1.0);
-                textRect.adjust(1,D_MARGINS+fm1.leading(),-2,0);
-             txt=fm1.elidedText(txt,Qt::ElideRight,textRect.width());
+    //رسم التحديد على مربع النص
+    if((option.state & QStyle::State_Selected) )
+        painter->fillRect(textRect, option.palette.highlight());
 
-              painter->drawText(textRect,txt,textOption);
-              return;
-         }
-          painter->setOpacity(1.0);
-          //-------------- Classic style --------------------------
-         textRect.adjust(0,D_MARGINS+fm1.leading(),0,0);
+    //لون النص عند التحديد او الوضع العادي
+    if(option.state & QStyle::State_Selected)
+        painter->setPen(option.palette.color( QPalette::HighlightedText));
+    else
+        painter->setPen(option.palette.color( QPalette::Text));
 
-        int height=fm1.height()+fm1.leading();
-           // QRectF rrect=textRect;
-        QString firstTxt=txt;
-        for (int i = 0; i < 3; ++i) {
-            if(firstTxt.isEmpty())break;
-            QString curentTxt=firstTxt;
-            curentTxt=fm1.elidedText(curentTxt,Qt::ElideRight,textRect.width());
 
-            if(curentTxt.endsWith("…") && i<2) curentTxt.remove("…");
+    //qDebug()<<"draw"<<txt<<textRect.height();
 
-            painter->drawText(textRect,curentTxt,textOption);
-            textRect.adjust(0,height,0,0);
-            //rrect.setTop(rrect.top()+height);;
-            firstTxt=firstTxt.mid(curentTxt.length());
+    //----------------  ModernMode  --------------------------
+    if(isModernMode){
+        painter->setOpacity(0.1);
+        painter->fillRect(textRect, option.palette.highlight());
+        painter->setOpacity(1.0);
+        textRect.adjust(1,D_MARGINS+fm1.leading(),-2,0);
+        txt=fm1.elidedText(txt,Qt::ElideRight,textRect.width());
 
-        }
+        painter->drawText(textRect,txt,textOption);
+        return;
+    }
+    painter->setOpacity(1.0);
+    //-------------- Classic style --------------------------
+    textRect.adjust(0,D_MARGINS+fm1.leading(),0,0);
+
+    int height=fm1.height()+fm1.leading();
+    // QRectF rrect=textRect;
+    QString firstTxt=txt;
+    for (int i = 0; i < 3; ++i) {
+        if(firstTxt.isEmpty())break;
+        QString curentTxt=firstTxt;
+        curentTxt=fm1.elidedText(curentTxt,Qt::ElideRight,textRect.width());
+
+        if(curentTxt.endsWith("…") && i<2) curentTxt.remove("…");
+
+        painter->drawText(textRect,curentTxt,textOption);
+        textRect.adjust(0,height,0,0);
+        //rrect.setTop(rrect.top()+height);;
+        firstTxt=firstTxt.mid(curentTxt.length());
+
+    }
 
 
 }

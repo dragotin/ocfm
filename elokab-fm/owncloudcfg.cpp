@@ -44,8 +44,11 @@ bool ownCloudCfg::isOwnCloudPath(const QString& path) const
 {
     if (path.isEmpty()) return false;
 
+    if (path.contains("ownCloud2"))
+        qDebug() << "Stop here";
+
     for(const auto &ocp : _ocPaths.keys()) {
-        if (path.startsWith(ocp)) {
+        if (path.startsWith(ocp) || ocp == path+"/") {
             return true;
         }
     }

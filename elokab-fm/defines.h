@@ -1,7 +1,7 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
-
+#define D_OWNCLOUD      Qt::UserRole+6
 #define D_MTYPE         Qt::UserRole+3
 #define D_MSize         Qt::UserRole+4
 #define D_MFPATH        Qt::UserRole+1

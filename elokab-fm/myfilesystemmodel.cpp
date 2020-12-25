@@ -16,7 +16,6 @@ MyFileSystemModel::MyFileSystemModel(const ownCloudCfg& ownCloudConfig, QObject 
     QFileSystemModel(parent),
     _ownCloudCfg(ownCloudConfig)
 {
-
     mimcach=new QHash<QString,QString>;
     setRootPath("/");
     setNameFilterDisables(false);
@@ -41,7 +40,7 @@ QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
     QFileInfo fi = fileInfo(index);
 
     // FIXME: Can be optimized by (at least) calling this only for dirs.
-    bool currentPathIsOwnCloud = _ownCloudCfg.isOwnCloudPath(fi.absolutePath()+"/");
+    bool currentPathIsOwnCloud = _ownCloudCfg.isOwnCloudPath(fi.absoluteFilePath());
 
     bool dehydrated {false};
     if (currentPathIsOwnCloud) {
@@ -59,6 +58,9 @@ QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
         }
         return fName;
     }
+
+    if(role == D_OWNCLOUD)
+        return currentPathIsOwnCloud;
 
     //تحميل نوع الملف بالغة النظام
     if((index.column()==D_COL_TYPE && role == Qt::DisplayRole) || role == D_MTYPE) {
