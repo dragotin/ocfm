@@ -12,9 +12,9 @@
  *
  *****************************************************************************************************/
 
-
-MyFileSystemModel::MyFileSystemModel(QObject *parent):
-    QFileSystemModel(parent)
+MyFileSystemModel::MyFileSystemModel(const ownCloudCfg& ownCloudConfig, QObject *parent):
+    QFileSystemModel(parent),
+    _ownCloudCfg(ownCloudConfig)
 {
 
     mimcach=new QHash<QString,QString>;
@@ -23,20 +23,28 @@ MyFileSystemModel::MyFileSystemModel(QObject *parent):
     setReadOnly(false);
     setResolveSymlinks(true);
 
+    connect(this, &QFileSystemModel::directoryLoaded, this, &MyFileSystemModel::slotDirLoaded);
     // Messages::debugMe(0,__LINE__,"MyFileSystemModel",__FUNCTION__,"End");
+}
+
+void MyFileSystemModel::slotDirLoaded(const QString& path)
+{
+    qDebug() << "Model loaded new Dir:" << path;
 }
 
 //--------------------------------------------------------------
 QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
 {
-    bool _currentPathIsOwnCloud {true}; // assume for the moment
     const int DehydrateLength = 9; // length of the string '.owncloud'
 
     if (!index.isValid())  return QVariant();
     QFileInfo fi = fileInfo(index);
 
+    // FIXME: Can be optimized by (at least) calling this only for dirs.
+    bool currentPathIsOwnCloud = _ownCloudCfg.isOwnCloudPath(fi.absolutePath()+"/");
+
     bool dehydrated {false};
-    if (_currentPathIsOwnCloud) {
+    if (currentPathIsOwnCloud) {
         QString fName = fi.fileName();
         if (fName.endsWith(".owncloud")) {
             dehydrated = true;
@@ -45,7 +53,7 @@ QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
 
     if((index.column()==D_COL_NAME && role == Qt::ToolTipRole)){
         QString fName = fi.fileName();
-        if (_currentPathIsOwnCloud && dehydrated) {
+        if (currentPathIsOwnCloud && dehydrated) {
             fName.chop(DehydrateLength); // remove the .owncloud
             fName.append( tr(" (dehydrated)"));
         }
@@ -98,7 +106,7 @@ QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
 
     if (index.column() == D_COL_NAME) {
         if (role == QFileSystemModel::FilePathRole || role == Qt::EditRole || role == Qt::DisplayRole) {
-            if (!fi.isDir() && _currentPathIsOwnCloud && dehydrated) {
+            if (!fi.isDir() && currentPathIsOwnCloud && dehydrated) {
                 QString file = fi.fileName();
                 if (file.length() > DehydrateLength)
                     file.chop(DehydrateLength);

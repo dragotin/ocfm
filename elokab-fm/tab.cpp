@@ -43,11 +43,12 @@
  *
  *****************************************************************************************************/
 
-Tab::Tab(Settings *setting, Actions *actions, QWidget *parent) :
+Tab::Tab(Settings *setting, Actions *actions, const ownCloudCfg& ownCloudCfg, QWidget *parent) :
     QTabWidget(parent),
     mSettings (setting),
     mActions(actions),
     mCute(0),
+    mOwnCloudCfg(ownCloudCfg),
     pageWidget(nullptr)
 {
 
@@ -59,8 +60,7 @@ Tab::Tab(Settings *setting, Actions *actions, QWidget *parent) :
     setMovable(true);
     setTabBarAutoHide(true);
   //  mFileSystemWatcher=new QFileSystemWatcher;
-    myModel = new MyFileSystemModel();
-
+    myModel = new MyFileSystemModel(mOwnCloudCfg);
 
     mimData=new QMimeData;
 

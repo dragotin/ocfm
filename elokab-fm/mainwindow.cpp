@@ -117,7 +117,7 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
     mActions  =new Actions(mSettings,locale().name().section("_",0,0));
     mIconProvider=new MyIconProvider;
    // mIconProvider->setlocale(locale().name().section("_",0,0));
-    mTab =new Tab(mSettings,mActions,this);
+    mTab =new Tab(mSettings,mActions,_ownCloudCfg, this);
     ui->vLayoutCenter->addWidget(mTab);
     placesTree= new PlaceTree(this);
     ui->verticalLayoutPlace->addWidget(placesTree);

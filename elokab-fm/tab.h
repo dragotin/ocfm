@@ -26,6 +26,8 @@
 
 
 #include "settings.h"
+#include "owncloudcfg.h"
+
 #include <QTabWidget>
 #include <QMimeData>
 #include <QUrl>
@@ -48,7 +50,9 @@ class Tab : public QTabWidget
           * @param parent
           */
           explicit Tab(Settings *setting,
-                       Actions *actions, QWidget *parent = nullptr);
+                       Actions *actions,
+                       const ownCloudCfg& ownCloudCfg,
+                       QWidget *parent = nullptr);
           ~Tab();
 
      signals:
@@ -166,6 +170,8 @@ void  tabAdded(const QString &url);
           /*!< cmment */
           bool mCute;
 
+          const ownCloudCfg& mOwnCloudCfg;
+
           /*!< cmment */
           PageWidget *pageWidget;
 
@@ -173,7 +179,6 @@ void  tabAdded(const QString &url);
          MyFileSystemModel *myModel;
         //    QFileSystemModel *myModel;
           //!
-
           //!
           QMimeData *mimData;
 

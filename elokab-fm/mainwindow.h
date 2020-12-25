@@ -29,6 +29,8 @@
 #include "placetree.h"
 #include "filterbar.h"
 #include "settings.h"
+#include "owncloudcfg.h"
+
 #include <QMainWindow>
 #include <QWidgetAction>
  #include <QProgressBar>
@@ -162,6 +164,8 @@ class MainWindow : public QMainWindow
 
           /*!< cmment */
           MyIconProvider *mIconProvider;
+
+          ownCloudCfg _ownCloudCfg;
 
           //!
       //    QFileSystemWatcher *m_fileWatcher;

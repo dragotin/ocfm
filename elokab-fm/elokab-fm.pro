@@ -33,6 +33,7 @@ INCLUDEPATH+=../common
 SOURCES += \
     main.cpp\
     mainwindow.cpp \
+    owncloudcfg.cpp \
     tab.cpp \
     pathwidget.cpp \
     pagewidget.cpp \
@@ -66,6 +67,7 @@ SOURCES += \
 
 HEADERS  += \
     mainwindow.h \
+    owncloudcfg.h \
     tab.h \
     pathwidget.h \
     pagewidget.h \

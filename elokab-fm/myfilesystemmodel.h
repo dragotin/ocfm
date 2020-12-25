@@ -1,6 +1,8 @@
 #ifndef MYFILESYSTEMMODEL_H
 #define MYFILESYSTEMMODEL_H
 
+#include "owncloudcfg.h"
+
 #include <QFileSystemModel>
 #include <QHash>
 
@@ -9,7 +11,7 @@ class MyFileSystemModel : public QFileSystemModel
     Q_OBJECT
 public:
 
-    explicit MyFileSystemModel(QObject *parent = nullptr);
+    explicit MyFileSystemModel(const ownCloudCfg& ownCloudConfig, QObject *parent = nullptr);
 
      //! مسح مسار الحالي في المخبأ
     void clearCache(const QString &path);
@@ -37,7 +39,8 @@ protected:
     //! ارجاع عدد الاعمدة
     int columnCount(const QModelIndex &parent = QModelIndex()) const ;
 
-public slots:
+private slots:
+    void slotDirLoaded(const QString& path);
 
 private:
 
@@ -48,6 +51,7 @@ private:
     QString localeType(const QFileInfo &info, bool isDehydrated)const;
 
 
+    const ownCloudCfg& _ownCloudCfg;
 
 };
 
