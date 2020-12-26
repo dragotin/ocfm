@@ -317,8 +317,10 @@ void PageWidget::customContextMenu(QPoint)
     }
     // OWNCLOUD------------------------------------
     if (idx.data(D_OWNCLOUD).toBool()) {
-        //
-        menu.addAction(mActions->ownCloudDehydrateAction(selectedFiles()));
+        if (idx.data(D_OWNCLOUD_DEHYDRATED).toBool())
+            menu.addAction(mActions->ownCloudHydrateAction(selectedFiles()));
+        else
+            menu.addAction(mActions->ownCloudDehydrateAction(selectedFiles()));
         menu.addSeparator();
     }
     // PROPERTIES----------------------------------

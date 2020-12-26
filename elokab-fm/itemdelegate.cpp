@@ -43,7 +43,9 @@ ItemDelegate::ItemDelegate(bool modern):isTreeview(false),isModernMode(modern)
 {
 
     mSymlinkIcon=EIcon::fromTheme("emblem-symbolic-link");
-    mOwncloudIcon=EIcon::fromTheme("cloudstatus");
+    mOwncloudDehydIcon = EIcon::fromTheme("cloudstatus");
+    // mOwncloudIcon = EIcon::fromTheme("cloudstatus");
+
    // mSymlinkIcon=EIcon::fromTheme("inode-symlink");//application-x-zerosize
 
     imageCache  =new QMap<QString ,QIcon>  ;
@@ -186,6 +188,10 @@ QIcon ItemDelegate::decoration(const QModelIndex &index)const
 
     //--------------------------------------- DIRECTORY
     if(info.isDir()) {
+        if (index.data(D_OWNCLOUD).toBool() &&
+            QIcon::hasThemeIcon("folder-owncloud")) {
+            return EIcon::fromTheme("folder-owncloud", ("folder-owncloud"));
+        }
         return EMimIcon::iconFolder(filePath);
     }
 
@@ -289,7 +295,8 @@ void ItemDelegate::paintIconView(QPainter *painter, const QStyleOptionViewItem &
 {
 
     QSize itemSize=QSize(option.rect.width(),option.rect.height());
-    bool isOwnClouded = index.data(D_OWNCLOUD).toBool();
+    // bool isOwnClouded= index.data(D_OWNCLOUD).toBool();
+    bool isOwnCloudDehyd = index.data(D_OWNCLOUD_DEHYDRATED).toBool();
 
     // المتغيرات--------------------------------------
     QTextOption textOption;
@@ -343,12 +350,12 @@ void ItemDelegate::paintIconView(QPainter *painter, const QStyleOptionViewItem &
     if(fn.isSymLink())
         painter->drawPixmap(iconPos, mSymlinkIcon.pixmap(option.decorationSize / 2, iconModeFromState(option.state)));
 
-    if (isOwnClouded) {
+    if (!fn.isDir() && isOwnCloudDehyd) {
         QPoint p(iconPos);
         p.setX(p.x()+option.decorationSize.width()-D_MARGINS-option.decorationSize.width()/3);
         p.setY(p.y()+option.decorationSize.height()-D_MARGINS-option.decorationSize.height()/3);
 
-        painter->drawPixmap(p, mOwncloudIcon.pixmap(option.decorationSize/3, iconModeFromState(option.state)));
+        painter->drawPixmap(p, mOwncloudDehydIcon.pixmap(option.decorationSize/3, iconModeFromState(option.state)));
     }
     //------------------------  رسم النص  --------------------------
     //مربع النص

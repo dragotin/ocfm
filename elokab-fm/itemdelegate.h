@@ -97,7 +97,7 @@ private:
     QString thumbnailCache;
 
     QIcon mSymlinkIcon;
-    QIcon mOwncloudIcon;
+    QIcon mOwncloudDehydIcon;
 
     bool  mThumbnail;
     bool  mPdfThumbnail;

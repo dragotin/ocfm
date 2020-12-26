@@ -59,6 +59,8 @@ QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
         return fName;
     }
 
+    if (role == D_OWNCLOUD_DEHYDRATED)
+        return dehydrated;
     if(role == D_OWNCLOUD)
         return currentPathIsOwnCloud;
 

@@ -62,6 +62,7 @@ public:
      //!
     QAction *AddArchiveAction(const QStringList &files);
 
+    QAction *ownCloudHydrateAction(const QStringList& files);
     QAction *ownCloudDehydrateAction(const QStringList& files);
 
      //!
@@ -250,6 +251,7 @@ public slots:
 
 private:
 
+    void ownCloudSocketCall(const QStringList& fileList, const QByteArray& cmd);
     //!
     void chargeFavorite();
 
@@ -291,7 +293,7 @@ private:
 
     //menuFile
     QAction *actCloseTab,*actDelete,*actMoveToTrash,*actRename,*actProperties ;
-    QAction *actAddArchive,*actExtractHere,*actTerminal, *actOwnCloudDehydrate;
+    QAction *actAddArchive,*actExtractHere,*actTerminal, *actOwnCloudDehydrate, *actOwnCloudHydrate;
     //menuEdit
     QAction* actCut ,*actSelectAll,*actFind,* actPaste,*actCopy,*actShowSettings;
 
@@ -389,6 +391,8 @@ private slots:
      void addArchive();
 
      void ownCloudDehydrate();
+     void ownCloudHydrate();
+
 };
 
 #endif // ACTONS_H
