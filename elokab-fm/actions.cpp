@@ -160,7 +160,9 @@ Actions::Actions(Settings *setting, const QString &lc, QObject *parent) :
      connect(actAddArchive, SIGNAL(triggered()), this, SLOT(addArchive()));
      actAddArchive->setStatusTip(tr("Add selected to Archive tar.gz"));
 
-
+     actOwnCloudDehydrate = new QAction(tr("Download from ownCloud"), this);
+     connect(actOwnCloudDehydrate, SIGNAL(triggered()), this, SLOT(ownCloudDehydrate()));
+     actOwnCloudDehydrate->setStatusTip(tr("Download files from ownCloud"));
 
      actSelectAll = new QAction(tr("Select All"), this);
      actSelectAll->setStatusTip(tr("Select all files"));
@@ -1295,6 +1297,26 @@ void Actions::addArchive()
     qDebug()<<"tar"<<"-cvf"<<archName<<m_dirPath;
 
 
+}
+
+QAction *Actions::ownCloudDehydrateAction(const QStringList& files)
+{
+    if (actOwnCloudDehydrate)
+        actOwnCloudDehydrate->setData(files);
+    return actOwnCloudDehydrate;
+}
+
+void Actions::ownCloudDehydrate()
+{
+    QByteArray buf {"MAKE_AVAILABLE_LOCALLY:"};
+    QStringList list = actOwnCloudDehydrate->data().toStringList();
+
+    if (list.size() > 0) {
+        const QString allFiles = list.join(QChar('\x1e'));
+        buf.append(allFiles.toUtf8());
+        buf.append("\n");
+        emit ownCloudSocketCmd(buf.data());
+    }
 }
 
 //_________________________________________________________________________________

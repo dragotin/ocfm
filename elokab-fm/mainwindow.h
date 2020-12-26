@@ -132,6 +132,8 @@ class MainWindow : public QMainWindow
           //!
           void showSettings();
 
+          void slotOwnCloudCommmandReceived(const QByteArray& command);
+
      private:
           Ui::MainWindow *ui;
 

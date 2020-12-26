@@ -315,6 +315,12 @@ void PageWidget::customContextMenu(QPoint)
         menu.addAction(mActions->AddArchiveAction(selectedFiles()));
         menu.addSeparator();
     }
+    // OWNCLOUD------------------------------------
+    if (idx.data(D_OWNCLOUD).toBool()) {
+        //
+        menu.addAction(mActions->ownCloudDehydrateAction(selectedFiles()));
+        menu.addSeparator();
+    }
     // PROPERTIES----------------------------------
     menu.addAction(mActions->propertiesAction());
 

@@ -23,6 +23,8 @@
 #include  "dialogactions.h"
 #include  "messages.h"
 #include  "about/widgetabout.h"
+#include "owncloudsocket.h"
+
 #include  <QDebug>
 #include  <QDialogButtonBox>
 #include  <QMessageBox>
@@ -229,6 +231,11 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
     ui->menuBar->setVisible(mSettings->showMenuBar());
      //--------------defaul-----------------
 
+    // owncloud socket
+    auto ownCloudSocket = ownCloudSocket::instance();
+    connect(ownCloudSocket, &ownCloudSocket::commandRecieved,
+            this, &MainWindow::slotOwnCloudCommmandReceived);
+    connect(mActions, &Actions::ownCloudSocketCmd, ownCloudSocket, &ownCloudSocket::sendCommand);
 
     QFileInfo fi(pathUrl);
     if(!fi.isDir())
@@ -240,6 +247,12 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
   Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__,"End");
 
 }
+
+void MainWindow::slotOwnCloudCommmandReceived(const QByteArray& command)
+{
+    qDebug() << "Command Received: " << command;
+}
+
 
 /**************************************************************************************
  *

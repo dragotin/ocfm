@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 
-QT       += core gui dbus xml concurrent
+QT       += core gui dbus xml concurrent network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets concurrent
 
@@ -62,7 +62,8 @@ SOURCES += \
     trash.cpp \
     thumbnails.cpp \
     dialogrenamefiles.cpp \
-    dialogaddaction.cpp
+    dialogaddaction.cpp \
+    owncloudsocket.cpp
 
 
 HEADERS  += \
@@ -98,7 +99,8 @@ HEADERS  += \
     trash.h \
     thumbnails.h \
     dialogrenamefiles.h \
-    dialogaddaction.h
+    dialogaddaction.h \
+    owncloudsocket.h
 
 
 FORMS    += mainwindow.ui \
