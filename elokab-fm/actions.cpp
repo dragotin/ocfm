@@ -1317,28 +1317,15 @@ QAction *Actions::ownCloudHydrateAction(const QStringList& files)
     return actOwnCloudHydrate;
 }
 
-void Actions::ownCloudSocketCall(const QStringList& fileList, const QByteArray& cmd)
-{
-    QByteArray buf{cmd};
-    if (fileList.size() > 0) {
-        const QString allFiles = fileList.join(QChar('\x1e'));
-        buf.append(allFiles.toUtf8());
-        buf.append("\n");
-        emit ownCloudSocketCmd(buf.data());
-    }
-
-}
 
 void Actions::ownCloudHydrate()
 {
-    const QByteArray buf {"MAKE_AVAILABLE_LOCALLY:"};
-    ownCloudSocketCall(actOwnCloudHydrate->data().toStringList(), buf);
+    emit sigOwnCloudHydrate(actOwnCloudHydrate->data().toStringList());
 }
 
 void Actions::ownCloudDehydrate()
 {
-    QByteArray buf {"MAKE_ONLINE_ONLY:"};
-    ownCloudSocketCall(actOwnCloudDehydrate->data().toStringList(), buf);
+    emit sigOwnCloudDeHydrate(actOwnCloudDehydrate->data().toStringList());
 }
 
 //_________________________________________________________________________________

@@ -125,3 +125,28 @@ void ownCloudSocket::slotReadyRead()
         emit commandRecieved(line);
     }
 }
+
+
+void ownCloudSocket::ownCloudSocketFileListCall(const QStringList& fileList, const QByteArray& cmd)
+{
+    QByteArray buf{cmd};
+    if (fileList.size() > 0) {
+        const QString allFiles = fileList.join(QChar('\x1e'));
+        buf.append(allFiles.toUtf8());
+        buf.append("\n");
+        sendCommand(buf.data());
+    }
+
+}
+
+void ownCloudSocket::slotOwnCloudHydrate(const QStringList& list)
+{
+    const QByteArray buf {"MAKE_AVAILABLE_LOCALLY:"};
+    ownCloudSocketFileListCall(list, buf);
+}
+
+void ownCloudSocket::slotOwnCloudDehydrate(const QStringList& list)
+{
+    const QByteArray buf {"MAKE_ONLINE_ONLY:"};
+    ownCloudSocketFileListCall(list, buf);
+}

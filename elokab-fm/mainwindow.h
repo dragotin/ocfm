@@ -91,7 +91,7 @@ class MainWindow : public QMainWindow
 
 
           //!
-          void setSelectedFoldersFiles(QString msg);
+          void setSelectedFoldersFiles(const QString& msg);
 
           //!
           void calculatFiles();

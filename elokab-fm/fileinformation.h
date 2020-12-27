@@ -32,41 +32,47 @@ class FileInformation;
  */
 class FileInformation : public QWidget
 {
-          Q_OBJECT
+    Q_OBJECT
 
-     public:
+public:
 
-          //!
-          explicit FileInformation(QWidget *parent = nullptr);
+    //!
+    explicit FileInformation(QWidget *parent = nullptr);
 
-          //!
-          ~FileInformation();
+    //!
+    ~FileInformation();
 
-          //!
-          void showEvent ( QShowEvent * /*event*/ );
+    //!
+    void showEvent ( QShowEvent * /*event*/ );
 
-          void setOwnCloudInfo(const QString& clientVer, const QString& protoVer);
-          void setOwnCloudInfoVisibled(bool connected);
-     private:
+    void setOwnCloudInfo(const QString& clientVer, const QString& protoVer);
+    void setOwnCloudInfoVisibled(bool connected);
 
-          Ui::FileInformation *ui;
+signals:
+    void sigOwncloudHydrate(const QStringList& list);
+    void sigOwncloudDehydrate(const QStringList& list);
 
-          //!
-          QString mFile;
-bool canReadAudio;
-     public slots:
+private:
 
-          //!
-          void setFileName(const QString &file);
+    Ui::FileInformation *ui;
 
-     private slots:
+    //!
+    QString mFile;
+    bool canReadAudio;
+    bool _ownCloudConnected;
+public slots:
 
-          //!
-          QString getDirSize(const QString &path);
+    //!
+    void setFileName(const QString &file, bool isOwnClouded, bool isSuffixVfs);
 
-QMap<QString, QString> audioInfo();
-          //!
-          void setFileInformation(const QFileInfo &fi);
+private slots:
+    void slotOwnCloudBtnClicked();
+    //!
+    QString getDirSize(const QString &path);
+
+    QMap<QString, QString> audioInfo();
+    //!
+    void setFileInformation(const QFileInfo &fi, bool isOwnclouded);
 
 
 };

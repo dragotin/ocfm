@@ -10,6 +10,7 @@ public:
     ownCloudCfg();
 
     bool isOwnCloudPath(const QString& path) const;
+    bool isSuffixVfs(const QString& path) const;
 
 private:
     QMap<QString, QString> _ocPaths;

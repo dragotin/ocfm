@@ -241,7 +241,8 @@ signals:
     void trashDeleteFile();
     void trashClean();
 
-    void ownCloudSocketCmd(const char* ar);
+    void sigOwnCloudHydrate(const QStringList& list);
+    void sigOwnCloudDeHydrate(const QStringList& list);
 
 public slots:
     //!

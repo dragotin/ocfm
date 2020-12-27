@@ -110,7 +110,7 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
 
 
     }
-      loadIconThems();
+    loadIconThems();
     mSettings=new Settings ;
 
     EMimIcon::setlocale(locale().name().section("_",0,0));
@@ -237,7 +237,11 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
             this, &MainWindow::slotOwnCloudCommmandReceived);
     connect(ownCloudSocket, &ownCloudSocket::connectionStatus,
             this, &MainWindow::slotOwnCloudConnectionStatus);
-    connect(mActions, &Actions::ownCloudSocketCmd, ownCloudSocket, &ownCloudSocket::sendCommand);
+    connect(mActions, &Actions::sigOwnCloudDeHydrate, ownCloudSocket, &ownCloudSocket::slotOwnCloudDehydrate);
+    connect(mActions, &Actions::sigOwnCloudHydrate, ownCloudSocket, &ownCloudSocket::slotOwnCloudHydrate);
+
+    connect(mFileInfo, &FileInformation::sigOwncloudDehydrate, ownCloudSocket, &ownCloudSocket::slotOwnCloudDehydrate);
+    connect(mFileInfo, &FileInformation::sigOwncloudHydrate, ownCloudSocket, &ownCloudSocket::slotOwnCloudHydrate);
 
     QFileInfo fi(pathUrl);
     if(!fi.isDir())
@@ -382,21 +386,26 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__,"End");
 /**************************************************************************************
  *
  **************************************************************************************/
-void MainWindow::setSelectedFoldersFiles(  QString msg)
+void MainWindow::setSelectedFoldersFiles(const QString &cmsg)
 {
 
-Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
+    Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
+    QString msg {cmsg};
 
-     if(!msg.isEmpty())
-     {
+    if(!msg.isEmpty())
+    {
+         const QString filePrefix {"file://"};
 
-          if(msg.startsWith("file://"))
+          if(msg.startsWith(filePrefix))
           {
+              msg.remove(0, filePrefix.length());
+              QFileInfo fi(msg);
 
+              // is ownCloud?
+              bool isOwnClouded = _ownCloudCfg.isOwnCloudPath(fi.absolutePath());
+              bool isSuffixVfs  = _ownCloudCfg.isSuffixVfs(fi.absolutePath());
+              mFileInfo->setFileName(cmsg, isOwnClouded, isSuffixVfs);
 
-               mFileInfo->setFileName(msg);
-               msg.remove("file://");
-               QFileInfo fi(msg);
                if(fi.isDir())
                     ui->statusBar->showMessage(QFileInfo(msg).fileName());
                else
@@ -404,11 +413,11 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
                                                +" :  "+QFileInfo(msg).fileName());
 
 
-          } else if(msg.startsWith("fileName://")){
+          } else if(msg.startsWith("selectedFoldersFiles")){
                ui->statusBar->showMessage(msg.remove("fileName://"));
 
           }else{
-               mFileInfo->setFileName(msg);
+               mFileInfo->setFileName(msg, false, false);
                ui->statusBar->showMessage(msg);
           }
 
@@ -432,7 +441,7 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
      else
           filter=QDir::AllEntries|  QDir::NoDotAndDotDot ;
 
-     mFileInfo->setFileName("file://"+m_mainUrl);
+     mFileInfo->setFileName("file://"+m_mainUrl, false, false);
      QDir dir(m_mainUrl);
      int folder=0,file=0;
      foreach (QString subfile, dir.entryList(filter))
