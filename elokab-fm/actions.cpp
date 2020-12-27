@@ -160,11 +160,11 @@ Actions::Actions(Settings *setting, const QString &lc, QObject *parent) :
      connect(actAddArchive, SIGNAL(triggered()), this, SLOT(addArchive()));
      actAddArchive->setStatusTip(tr("Add selected to Archive tar.gz"));
 
-     actOwnCloudHydrate = new QAction(tr("Download from ownCloud"), this);
+     actOwnCloudHydrate = new QAction(QIcon::fromTheme("cloudstatus"), tr("Download from ownCloud"), this);
      connect(actOwnCloudHydrate, SIGNAL(triggered()), this, SLOT(ownCloudHydrate()));
      actOwnCloudHydrate->setStatusTip(tr("Download files from ownCloud"));
 
-     actOwnCloudDehydrate = new QAction(tr("Free storage space"), this);
+     actOwnCloudDehydrate = new QAction(QIcon::fromTheme("cloudstatus"), tr("Free harddisk space"), this);
      connect(actOwnCloudDehydrate, SIGNAL(triggered()), this, SLOT(ownCloudDehydrate()));
      actOwnCloudDehydrate->setStatusTip(tr("Make files stored in ownCloud only"));
 
