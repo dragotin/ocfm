@@ -133,6 +133,7 @@ class MainWindow : public QMainWindow
           void showSettings();
 
           void slotOwnCloudCommmandReceived(const QByteArray& command);
+          void slotOwnCloudConnectionStatus(bool connected);
 
      private:
           Ui::MainWindow *ui;

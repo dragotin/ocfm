@@ -235,6 +235,8 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
     auto ownCloudSocket = ownCloudSocket::instance();
     connect(ownCloudSocket, &ownCloudSocket::commandRecieved,
             this, &MainWindow::slotOwnCloudCommmandReceived);
+    connect(ownCloudSocket, &ownCloudSocket::connectionStatus,
+            this, &MainWindow::slotOwnCloudConnectionStatus);
     connect(mActions, &Actions::ownCloudSocketCmd, ownCloudSocket, &ownCloudSocket::sendCommand);
 
     QFileInfo fi(pathUrl);
@@ -251,8 +253,17 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
 void MainWindow::slotOwnCloudCommmandReceived(const QByteArray& command)
 {
     qDebug() << "Command Received: " << command;
+    if (command.startsWith("VERSION:")) {
+        auto list = command.split(':');
+        if (list.size() == 3)
+        mFileInfo->setOwnCloudInfo(list.at(1), list.at(2));
+    }
 }
 
+void MainWindow::slotOwnCloudConnectionStatus(bool connected)
+{
+    mFileInfo->setOwnCloudInfoVisibled(connected);
+}
 
 /**************************************************************************************
  *

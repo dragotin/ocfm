@@ -45,6 +45,8 @@ class FileInformation : public QWidget
           //!
           void showEvent ( QShowEvent * /*event*/ );
 
+          void setOwnCloudInfo(const QString& clientVer, const QString& protoVer);
+          void setOwnCloudInfoVisibled(bool connected);
      private:
 
           Ui::FileInformation *ui;

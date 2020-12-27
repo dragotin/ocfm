@@ -34,6 +34,7 @@ ownCloudSocket* ownCloudSocket::instance()
 ownCloudSocket::ownCloudSocket()
 {
     connect(&_socket, &QLocalSocket::connected, this, &ownCloudSocket::slotConnected);
+    connect(&_socket, &QLocalSocket::disconnected, this, &ownCloudSocket::slotDisconnected);
     connect(&_socket, &QLocalSocket::readyRead, this, &ownCloudSocket::slotReadyRead);
     _connectTimer.start(45 * 1000, Qt::VeryCoarseTimer, this);
     tryConnect();
@@ -63,6 +64,13 @@ void ownCloudSocket::slotConnected()
 {
     sendCommand("VERSION:\n");
     sendCommand("GET_STRINGS:\n");
+    emit connectionStatus(true);
+
+}
+
+void ownCloudSocket::slotDisconnected()
+{
+    emit connectionStatus(false);
 }
 
 void ownCloudSocket::tryConnect()

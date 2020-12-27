@@ -47,6 +47,8 @@ FileInformation::FileInformation(QWidget *parent) :
 #ifdef DEBUG_APP
      Messages::showMessage(Messages::END,"FileInformation::FileInformation()");
 #endif
+     ui->labelOwnCloud->setToolTip(tr("ownCloud Connected."));
+     setOwnCloudInfo(QString(), QString());
 }
 
 /**************************************************************************************
@@ -311,4 +313,22 @@ QFileInfo fi(mFile);
 
     return map;
 
+}
+
+void FileInformation::setOwnCloudInfo(const QString& clientVer, const QString& protoVer)
+{
+    bool isVisible = !(clientVer.isEmpty() && protoVer.isEmpty());
+    ui->labelOwnCloudImage->setVisible(isVisible);
+    ui->labelOwnCloud->setVisible(isVisible);
+    if(isVisible) {
+        const QString t = QString(tr("Client-Version: %1\nProtocol-Version: %2"))
+                .arg(clientVer).arg(protoVer);
+        ui->labelOwnCloud->setText(t);
+    }
+}
+
+void FileInformation::setOwnCloudInfoVisibled(bool connected)
+{
+    ui->labelOwnCloudImage->setVisible(connected);
+    ui->labelOwnCloud->setVisible(connected);
 }

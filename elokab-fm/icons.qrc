@@ -36,5 +36,6 @@
         <file>icons/emblem-symbolic-link.svg</file>
         <file>icons/video.svg</file>
         <file>icons/x-pdf.svg</file>
+        <file>icons/oclogo48.png</file>
     </qresource>
 </RCC>

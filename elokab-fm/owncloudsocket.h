@@ -48,15 +48,20 @@ public:
 
 signals:
     void commandRecieved(const QByteArray &cmd);
+    void connectionStatus(bool status);
 
 protected:
     void timerEvent(QTimerEvent*) override;
 
+private slots:
+    void slotConnected();
+    void slotDisconnected();
+    void slotReadyRead();
+
 private:
     ownCloudSocket();
-    void slotConnected();
-    void slotReadyRead();
     void tryConnect();
+
     QLocalSocket _socket;
     QByteArray _line;
     QVector<QString> _paths;
