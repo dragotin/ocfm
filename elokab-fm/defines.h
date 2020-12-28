@@ -10,7 +10,7 @@
 #define D_MARGINS       3
 
 #define D_APPNAME       "elokab-fm"
-#define D_APPVERSION    "0.2"
+#define D_APPVERSION    "0.2+ownCloud patches"
 #define D_APPORGNAME    "elokab"
 
 #define D_TRASH         ":/trash"
