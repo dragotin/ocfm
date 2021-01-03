@@ -7,7 +7,6 @@ DESTDIR = ../../usr/lib
 TEMPLATE    = lib
 
 LIBS        += -L. 
-LIBS += -lmagic
 
 HEADERS  += \
     menugen.h \

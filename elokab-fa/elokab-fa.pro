@@ -15,7 +15,6 @@ OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
 INCLUDEPATH +=build
-    LIBS += -lmagic
 
 INCLUDEPATH+=../common
 
