@@ -19,8 +19,10 @@
 #define D_PDF_TYPE      "pdf"
 #define D_VIDEO_TYPE    "video"
 
-#define D_KEY_FILEPATH  "FILEPATH"
-#define D_KEY_DATETIME  "DATETIME"
+#define THUMB_LAST_MODIFIED QStringLiteral("Thumb::MTime")
+#define THUMB_URI           QStringLiteral("Thumb::URI")
+#define THUMB_MIMETYPE      QStringLiteral("Thumb::Mimetype")
+#define THUMB_SIZE          QStringLiteral("Thumb::Size")
 
 #define D_COL_NAME      0
 #define D_COL_SIZE      1

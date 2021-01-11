@@ -20,6 +20,7 @@
 #ifndef MYLISTVIEW_H
 #define MYLISTVIEW_H
 #include "actions.h"
+
 #include <QListView>
 #include<QFileSystemModel>
 /**

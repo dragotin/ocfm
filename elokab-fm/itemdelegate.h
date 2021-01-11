@@ -19,9 +19,11 @@
 
 #ifndef ITEMDELEGATE_H
 #define ITEMDELEGATE_H
+#include "thumbnails.h"
+
 #include <QAbstractItemDelegate>
 #include <QStyledItemDelegate>
-
+#include <QPointer>
 #include <QFileInfo>
 
 
@@ -33,7 +35,7 @@ class ItemDelegate : public QStyledItemDelegate
 public:
 
     //!
-    explicit ItemDelegate(bool modern);
+    explicit ItemDelegate(bool modern, Thumbnails* thumbnails);
 
     //!
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
@@ -84,12 +86,8 @@ private slots:
     //!   جلب الايقونة
     QIcon decoration(const QModelIndex &index) const;
 
-    //!   جلب ايقونة المصغرات
-    QIcon iconThumbnails(const QString &file,const QString &type=QString())const;
-
 private:
 
-    QMap<QString ,QIcon>  *imageCache ;
     QMap<QString ,QIcon>  *iconCache ;
     QMap<QString ,QIcon>  *deskCache;
 
@@ -104,7 +102,7 @@ private:
     bool  isTreeview;
     bool  isModernMode;
 
-
+    QPointer<Thumbnails> _thumbFactory;
 
 };
 

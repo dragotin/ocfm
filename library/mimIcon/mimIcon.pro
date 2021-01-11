@@ -1,6 +1,7 @@
 QT       += core gui dbus
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets gui core
-CONFIG      +=  plugin release
+CONFIG      += plugin
+CONFIG      += debug
 TARGET      = $$qtLibraryTarget(elokabmimicon)
 DESTDIR = ../../usr/lib
 

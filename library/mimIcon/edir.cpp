@@ -139,12 +139,34 @@ QString Edir::applicationsHomeDir()
 //_________________________________________________________________
 QString Edir::thumbnaileCachDir()
 {
-       QString location=cachDir();
-       location+="/thumbnails";
-       QDir dir(location);
-       if(!dir.exists())
-           dir.mkpath(".");
-       return location;
+    QString cacheDir;
+
+    // Follow the FreeDesktop Spec
+    const QByteArray arr = qgetenv("XDG_CACHE_HOME");
+    if (!arr.isEmpty()) {
+        QFileInfo fi(arr);
+        if (fi.exists() && fi.isReadable()) {
+            cacheDir = fi.absoluteFilePath();
+            cacheDir += QStringLiteral("/thumbnails/");
+        }
+    }
+
+    if (cacheDir.isEmpty()) {
+        cacheDir = QDir::homePath();
+        cacheDir += QStringLiteral("/.cache/thumbnails/");
+    }
+
+    // check if
+    if (!cacheDir.isEmpty()) {
+        QDir dir(cacheDir);
+        if(!dir.exists())
+            dir.mkpath(".");
+        // FIXME: check for all the other sizes
+        QDir dirNormal(cacheDir+"normal/");
+        if(!dirNormal.exists())
+            dirNormal.mkpath(".");
+    }
+    return cacheDir;
 }
 
 //_________________________________________________________________
