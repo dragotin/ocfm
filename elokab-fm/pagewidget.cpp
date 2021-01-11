@@ -67,9 +67,9 @@ PageWidget::PageWidget(MyFileSystemModel *model,
     vLayoutList->setSpacing(6);
     vLayoutList->setContentsMargins(0,0,0,0);
 
-    mItemDelegate=new ItemDelegate(!mSettings->isClassicIcons());
+    mThumbnails=new Thumbnails;
 
-    mThumbnails=new Thumbnails ;
+    mItemDelegate=new ItemDelegate(!mSettings->isClassicIcons(), mThumbnails);
 
     listView = new MyListView(myModel,mActions,pageList);
     listView->setItemDelegate(mItemDelegate);

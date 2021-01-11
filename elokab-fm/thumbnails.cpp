@@ -9,20 +9,49 @@
 #include <QPainter>
 #include <QImageReader>
 
-QString codeMd5(QString fileName)
-{
+namespace {
+    QMutex _mutex;
 
-    QMessageAuthenticationCode code(QCryptographicHash::Md5);
-    code.addData(fileName.toUtf8());
-    return code.result().toHex();
+    QString md5EncodedName(const QString& file) {
+        if (file.isEmpty())
+            return QString();
+
+        QMessageAuthenticationCode code(QCryptographicHash::Md5);
+
+        if (!file.startsWith("file://")) {
+            code.addData("file://");
+        }
+
+        code.addData(file.toUtf8());
+        return code.result().toHex();
+    }
+
+    QString thumbnailFilePathPersonal(const QString& file, Thumbnails::Size size) {
+        QString tnFilePath = Edir::thumbnaileCachDir();
+
+        if (size == Thumbnails::Size::Normal)
+            tnFilePath.append("normal/");
+        else if( size == Thumbnails::Size::Large)
+            tnFilePath.append("large/");
+        else if( size == Thumbnails::Size::XLarge)
+            tnFilePath.append("x-large/");
+        else if( size == Thumbnails::Size::XXLarge)
+            tnFilePath.append("xx-large/");
+        else if( size == Thumbnails::Size::Fail)
+            tnFilePath.append("fail/");
+        tnFilePath.append(md5EncodedName(file));
+        tnFilePath.append(".png");
+
+        return tnFilePath;
+    }
+
 }
 
 //***********************  Thumbnails ***********************
 
 Thumbnails::Thumbnails(QObject *parent) : QObject(parent)
 {
-    canReadPdf=EMimIcon::findProgram("convert");
-    canReadPdf=EMimIcon::findProgram("pdfimages");
+    canReadPdf=EMimIcon::findProgram("gs");
    // canReadVideo=EMimIcon::findProgram("ffmpeg");
 
     mThread=new Thread;
@@ -57,23 +86,26 @@ void Thumbnails::directoryChanged(const QString &path)
 }
 
 //_____________________________________________________________
-void Thumbnails::addFileName(const QFileInfo &info,const QString &type)
+void Thumbnails::addFileName(const QFileInfo &info)
 {
 
    if(mListExclude.contains(info.filePath())) { return; }
+   QMimeDatabase db;
+   QMimeType mime = db.mimeTypeForFile(info);
+   const QString mimeType = mime.name();
 
-   if(type==D_PDF_TYPE && !canReadPdf       ) { return; }
+   if(mime.inherits("application/pdf") && !canReadPdf       ) { return; }
 
-   if(type==D_VIDEO_TYPE && !canReadVideo   ) { return; }
+   if(mimeType.startsWith("video/") && !canReadVideo   ) { return; }
 
-   qDebug()<<__FILE__<<__FUNCTION__<<info.fileName()<<type;
+   qDebug()<<__FILE__<<__FUNCTION__<<info.fileName()<< mimeType;
 
     while (myMap.count()>50) {
         QString   filename = myMap.firstKey();
         myMap.remove(filename);
     }
 
-    myMap[info.filePath()]=type;
+    myMap[info.filePath()] = mimeType;
     //myMap.insert(myMap.constBegin() ,info.filePath(),type);
     if(!mThread->isRunning())
     { startRender(); }
@@ -86,6 +118,60 @@ void Thumbnails::startNewThread()
     myMap.remove(mThread->curentPath());
     // qDebug()<<__FILE__<<"finiched>>>>>>>>>>"<<mThread->curentPath();
     startRender();
+}
+
+//_____________________________________________________________
+QIcon Thumbnails::getThumbnail( const QFileInfo& fi, Size size)
+{
+    // --------- Read from personal repository first
+
+    // --------- If still empty, read from shared repo
+
+    bool hasThumb=false;
+    bool hasImage=false;
+    QString fileIcon;
+
+    const QString fileThumbnail = thumbnailFilePathPersonal(fi.absoluteFilePath(), size);
+
+    // ---------------------- if Thumbnail file exist -----------------------
+    if(QFile::exists(fileThumbnail)){
+        QImage reader(fileThumbnail);
+        QStringList keys = reader.textKeys();
+        const QString fModified = reader.text(THUMB_LAST_MODIFIED); // THUMB_LAST_MODIFIED);
+        if( !fModified.isEmpty() &&
+                fModified == QString::number(fi.lastModified().toSecsSinceEpoch())) {
+            hasImage=true;
+            hasThumb=true;
+            fileIcon=fileThumbnail;
+        } else {
+            QFile::remove(fileThumbnail);
+        }
+    }
+
+    // ----------------if no thumbnail file and size < 128--------------------
+    if(!hasThumb){
+        QImageReader reader(fi.absoluteFilePath());
+        if(reader.canRead()){
+            if(qMax(reader.size().width(),reader.size().height())<=128){
+                // hasImage=   image.load((file));
+                hasImage=true;
+                fileIcon=fi.absoluteFilePath();
+            }
+        }
+    }
+
+    //-------------if no thumbnail and image size > 128-------------------
+    if(!hasThumb && ! hasImage ) {
+        addFileName(fi);
+    }
+
+    if(hasImage && !fileIcon.isEmpty()){
+        QIcon icon;
+        icon.addFile(fileIcon,QSize(128,128));
+        return icon;
+    }
+
+    return QIcon();
 }
 
 //_____________________________________________________________
@@ -107,66 +193,66 @@ void Thumbnails::startRender()
 
 void Thread::run()
 {
-    if(mType==D_IMAGE_TYPE)  { createImageThumbnail(); }
+    // Get the input data out of the critical variables
+    _mutex.lock();
+    const QString filePath = mInfo.filePath();
+    const QString lastMod = QString::number(mInfo.lastModified().toSecsSinceEpoch());
+    quint64 fileSize = mInfo.size();
+    _mutex.unlock();
 
-    if(mType==D_PDF_TYPE  )  { createPdfThumbnail();   }
+    const QString fileThumbnail = thumbnailFilePathPersonal(filePath, Thumbnails::Size::Normal);
 
-    if(mType==D_VIDEO_TYPE)  { createVideoThumbnail(); }
+    // create an empty image to fill in the thumbnail. It is passed to the
+    // creator functions by reference, so they fill it.
+    QImage image;
 
+    if(mType.startsWith(D_IMAGE_TYPE))  {
+        createImageThumbnail(filePath, image);
+    } else if(mType.endsWith(D_PDF_TYPE))  {
+        createPdfThumbnailGS(filePath, image);
+    } else if(mType.startsWith(D_VIDEO_TYPE)) {
+        createVideoThumbnail(filePath, image);
+    }
+
+    // if there is a resulting image, it is saved with some metadata.
+    if (!image.isNull()) {
+        image.setText(THUMB_LAST_MODIFIED, lastMod);
+        image.setText(THUMB_URI, QStringLiteral("file://")+filePath);
+        // image.setText(THUMB_MIMETYPE, ) FIXME
+        image.setText(THUMB_SIZE, QString::number(fileSize));
+
+        if(image.save(fileThumbnail)) {
+            qDebug()<<__FILE__<<__FUNCTION__<<"image saved"<< filePath;
+        }
+    }
+    emit terminated(filePath);
+}
+
+void Thread::setFile(const QFileInfo &info,const QString &type)
+{
+    QMutexLocker locker(&_mutex);
+    mInfo=info;
+    mType=type;
 }
 
 //***************************************************************
 //*                  Generate Images thumbnails                 *
 //***************************************************************
-void Thread::createImageThumbnail()
+void Thread::createImageThumbnail(const QString& filePath, QImage &image)
 {
-    //qDebug()<<__FILE__<<__FUNCTION__<<mInfo.filePath();
-
-
-    QImageReader reader(mInfo.filePath());
-    if(!reader.canRead()){  return;}
-
-    if(qMax(reader.size().width(),reader.size().height())<=128){ return;}
-
-    QString codeName=codeMd5(mInfo.filePath());
-
-    QString thumbnail=Edir::thumbnaileCachDir();
-    QString fileThumbnail=thumbnail+"/"+codeName;
-
-    //qDebug()<<"creatthumb"<<fi.filePath();
-    if(QFile::exists(fileThumbnail)){
-
-        reader.setFileName(fileThumbnail);
-        if(reader.canRead()){
-            QString  fModified=reader.text(D_KEY_DATETIME);
-            if(fModified== mInfo.lastModified().toString("dd MM yyyy hh:mm:ss"))
-            { return;}
-        }
-
+    QImageReader reader(filePath);
+    if(!reader.canRead()){
+        return;
     }
 
-    QImage image;
-    if( image.load(mInfo.filePath()))
-    {
-        // qDebug()<<"saveImageThumb"<<__LINinfo_<<fi.filePath();
-        image= image.scaled(QSize(128,128),Qt::KeepAspectRatio,Qt::SmoothTransformation);
-        image.setText(D_KEY_DATETIME,mInfo.lastModified().toString("dd MM yyyy hh:mm:ss"));
-
-        QByteArray text=mInfo.filePath().toUtf8();
-        image.setText(D_KEY_FILEPATH,text.toHex());
-
-        QByteArray format="jpg";
-        if(image.hasAlphaChannel())
-            format="png";
-
-        if(image.save(fileThumbnail,format,90))   {
-            qDebug()<<__FILE__<<__FUNCTION__<<"image saved"<<mInfo.fileName();
-            emit terminated(mInfo.filePath());
-
-        }
-
+    if(qMax(reader.size().width(),reader.size().height())<=128) {
+        return;
     }
 
+    if( image.load(filePath)) {
+        // FIXME: Consider size parameter here
+        image= image.scaled(QSize(128,128), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
     //---------------------end
 
 }
@@ -174,172 +260,102 @@ void Thread::createImageThumbnail()
 //***************************************************************
 //*                  Generate PDF thumbnails                    *
 //***************************************************************
-void Thread::createPdfThumbnail()
+
+void Thread::createPdfThumbnailGS(const QString& filePath, QImage &image)
 {
+    // gs -dNOPAUSE -dBATCH -sDEVICE=png16m -r96 -dLastPage=1 -sOutputFile=- -sstdout=%stderr -g120x120 -dPDFFitPage=true
+    QProcess p;
+    QStringList args;
 
-    qDebug()<<__FILE__<<__FUNCTION__<<mInfo.filePath();
-    // if(!canReadPdf) {cancel(mInfo.filePath()); return;}
-    //-----------------------------------------------
+    args << "-dNOPAUSE";
+    args << "-DBATCH";
+    args << "-sDEVICE=png16m";
+    args << "-r96";
+    args << "-dLastPage=1";
+    args << "-sOutputFile=-";
+    args << "-sstdout=%stderr";
+    args << "-g120x120";
+    args << "-dPDFFitPage=true";
+    args << filePath;
 
-    QString mthumbnail=Edir::thumbnaileCachDir();
-
-    QString md5Name=codeMd5(mInfo.filePath());
-
-    QString fileThumbnail=mthumbnail+"/"+md5Name;
-
-    if(QFile::exists(fileThumbnail)){
-        QImageReader reader(fileThumbnail);
-        if(reader.canRead()){
-            qDebug()<<__FILE__<<__FUNCTION__<<"exist"<<fileThumbnail;
-            return ;
+    p.start("/usr/bin/gs", args);
+    QByteArray ba;
+    if (p.waitForStarted(-1)) {
+        while(p.waitForReadyRead(-1)) {
+            ba += p.readAllStandardOutput();
         }
     }
-
-     if(!QFile::exists(fileThumbnail+"pdf-000.png")){
-    //if(!QFile::exists(fileThumbnail+".png")){
-        // qDebug()<<__FUNCTION__<<">> start prossec"<<mInfo.fileName();
-        QProcess p;
-        QStringList list;
-
-//        list<<"-thumbnail"<<"x128"
-////           <<"-quality"<<"100"
-//          <<mInfo.filePath()+"[0]"<<fileThumbnail+".png";
-//        p.start("convert",list);
- //qDebug()<<"thumbnail:"<<list;
-                  list<<"-l"<<"1"<<"-png"<<mInfo.filePath()<<fileThumbnail+"pdf";
-                  p.start("pdfimages",list);
-        if (!p.waitForStarted()) {  return ; }
-
-        if (!p.waitForFinished()){  return ; }
-        QString err=p.readAllStandardOutput()+p.readAllStandardError();
-        if(!err.isEmpty())
-            qDebug()<<"error:"<<err;
-        // qDebug()<<__FUNCTION__<<">> finish prossec"<<mInfo.fileName();
-
-    }
-
-   QString name=fileThumbnail+"pdf-000.png";
-    // QString name=fileThumbnail+".png";
- qDebug()<<__FILE__<<__FUNCTION__<<fileThumbnail;
-    QImage imagePdf;
-    if( imagePdf.load(name))
-    {
-
-        //qDebug()<<__FUNCTION__<<">> load image "<<mInfo.fileName();
-        imagePdf=imagePdf.scaled(QSize(128,128),Qt::KeepAspectRatio,Qt::SmoothTransformation);
-
-        QImage imageIco;
-        QImage imageBack(imagePdf.width(),imagePdf.height(),QImage::Format_ARGB32);
-        imageIco.load(":/icons/x-pdf.svg");
-        QPainter p(&imageBack);
-
-         p.fillRect(imagePdf.rect(),QColor(Qt::white));
-
-        p.drawImage(imagePdf.rect(),imagePdf);
-        p.drawImage(1,1,imageIco);
-        imageBack.setText(D_KEY_DATETIME,mInfo.lastModified().toString("dd MM yyyy hh:mm:ss"));
-        QByteArray text=mInfo.filePath().toUtf8();
-        imageBack.setText(D_KEY_FILEPATH,text.toHex());
- qDebug()<<__FILE__<<__FUNCTION__<<fileThumbnail;
-        if(imageBack.save(fileThumbnail,"jpg",90))   {
-            qDebug()<<__FILE__<<__FUNCTION__<<"pdf saved"<<mInfo.fileName();
-
-            emit terminated(mInfo.filePath());
-            QFile::remove(name);
-        }// image.save
-
-    }
-
-    //---------------------end
-
+    if (!ba.isEmpty())
+        image.loadFromData(ba);
 }
 
 //***************************************************************
 //*                  Generate VIDEO thumbnails                 *
 //***************************************************************
-void Thread::createVideoThumbnail()
+void Thread::createVideoThumbnail(const QString& filePath, QImage &image)
 {
-
-    QString thumbnail=Edir::thumbnaileCachDir();
-    QString md5Name=codeMd5(mInfo.filePath());
-    QString fileThumbnail=thumbnail+"/"+md5Name;
-
-    //qDebug()<<"creatthumb"<<fi.filePath();
-    if(QFile::exists(fileThumbnail)){
-        // qDebug()<<__FUNCTION__<<"exist"<<fileThumbnail;
-        return ;
+    QTemporaryFile fi;
+    QString fileName;
+    if (fi.open()) {
+        fileName = fi.fileName();
+        fi.close();
     }
-QString vtime;
-    if(!QFile::exists(fileThumbnail+".video")){
+    QMap<QString, QString> map=  videoInfo();
+    QString pos=map.value("Pos");
+    QString vtime=map.value("Time");
 
-        QMap<QString, QString> map=  videoInfo();
-        QString pos=map.value("Pos");
-         vtime=map.value("Time");
+    qDebug()<<"thumb"<<pos<<vtime;
 
-        qDebug()<<"thumb"<<pos<<vtime;
+    QStringList list;
+    //ffmpeg -i ./kofar-bi-amirica.mp4 -y -ss 10.0 -vframes 1 -vf  scale="'if(gt(a,1/1),128,-1)':'if(gt(a,1/1),-1,128)'"   out.png
+    //        list<<"-i"<<mInfo.filePath()<<"-y"<<"-t"<<"1"<<"-r"<<"1"
+    //           <<"-ss"<<pos<<"-s"<<"128x128"<<"-f"<<"image2"<<fileThumbnail+".video";
+    list<<"-i"<<filePath         /*Input File Name*/
+       <<"-y"                    /*Overwrite*/
+      <<"-ss"<<pos              /* seeks in this position*/
+     <<"-vframes"<<"1"         /* Num Frames */
+    <<"-f"<<"image2"          /* file format.  */
+    <<"-s"<<"128x128"         /*<<"-vf"<<scal*/
+    << fileName; /*output file Name */
 
-       // QString scal="scale='if(gt(a,1/1),128,-1)':'if(gt(a,1/1),-1,128)'";
-        QStringList list;
-//ffmpeg -i ./kofar-bi-amirica.mp4 -y -ss 10.0 -vframes 1 -vf  scale="'if(gt(a,1/1),128,-1)':'if(gt(a,1/1),-1,128)'"   out.png
-//        list<<"-i"<<mInfo.filePath()<<"-y"<<"-t"<<"1"<<"-r"<<"1"
-//           <<"-ss"<<pos<<"-s"<<"128x128"<<"-f"<<"image2"<<fileThumbnail+".video";
-        list<<"-i"<<mInfo.filePath() /*Input File Name*/
-           <<"-y"                    /*Overwrite*/
-           <<"-ss"<<pos              /* seeks in this position*/
-           <<"-vframes"<<"1"         /* Num Frames */
-           <<"-f"<<"image2"          /* file format.  */
-           <<"-s"<<"128x128"         /*<<"-vf"<<scal*/
-           <<fileThumbnail+".video"; /*output file Name */
+    QProcess p;
+    //-------------------------------------------
 
-        QProcess p;
-        //-------------------------------------------
+    //-------------------------------------------
+    p.start("ffmpeg",list);
 
-        //-------------------------------------------
-        p.start("ffmpeg",list);
+    if (!p.waitForStarted()) {   return ;  }
 
-        if (!p.waitForStarted()) {   return ;  }
+    if (!p.waitForFinished()){   return ;  }
 
-        if (!p.waitForFinished()){   return ;  }
+    QString err=p.readAllStandardError();
+    QString read=p.readAll();
+    if(err.contains("not contain any stream"))
+        emit excluded(filePath);
 
-        QString err=p.readAllStandardError();
-        QString read=p.readAll();
-        if(err.contains("not contain any stream"))
-            emit excluded(mInfo.filePath());
-
-        //        if(!err.isEmpty())
-             //     qDebug()<<__FUNCTION__<<">> error: "<<err;
-
-    }
-
-    QImage imagevideo;
-    if( imagevideo.load(fileThumbnail+".video"))
-    {
+    if( image.load(fileName)) {
 
       //  imagevideo= imagevideo.scaled(QSize(128,128),Qt::KeepAspectRatio,Qt::SmoothTransformation);
 
         QImage imageIcon;
         imageIcon.load(":/icons/video.svg");
-        QPainter p(&imagevideo);
-        int imX=(imagevideo.width()-imageIcon.width())/2;
-        int imY=(imagevideo.height()-imageIcon.height())/2;
+        QPainter p(&image);
+        int imX=(image.width()-imageIcon.width())/2;
+        int imY=(image.height()-imageIcon.height())/2;
         p.drawImage(imX,imY,imageIcon);
-        QRect rect(0,imY+imageIcon.height(),imagevideo.width(),imagevideo.height()-(imY+imageIcon.height()));
+        QRect rect(0,imY+imageIcon.height(),image.width(),image.height()-(imY+imageIcon.height()));
         p.setPen(QColor(Qt::black));
         p.drawText(rect,Qt::AlignHCenter|Qt::AlignVCenter,vtime);
         rect.adjust(1,1,1,1);
         p.setPen(QColor(Qt::white));
         p.drawText(rect,Qt::AlignHCenter|Qt::AlignVCenter,vtime);
 
-        imagevideo.setText(D_KEY_DATETIME,mInfo.lastModified().toString("dd MM yyyy hh:mm:ss"));
+        // imagevideo.setText(D_KEY_DATETIME,mInfo.lastModified().toString("dd MM yyyy hh:mm:ss"));
         QByteArray text=mInfo.filePath().toUtf8();
-        imagevideo.setText(D_KEY_FILEPATH,text.toHex());
+        // imagevideo.setText(D_KEY_FILEPATH,text.toHex());
 
-        if(imagevideo.save(fileThumbnail,"jpg",90))   {
-            qDebug()<<__FILE__<<__FUNCTION__<<"video saved"<<mInfo.fileName();
-            emit terminated(mInfo.filePath());
-            QFile::remove(fileThumbnail+".video");
-         }
-
+        QFile::remove(fileName);
+        emit terminated(mInfo.filePath());
     }
 
     //---------------------end

@@ -13,7 +13,7 @@ class Thread : public QThread
 public:
     Thread(){}
 
-    void setFile(const QFileInfo &info,const QString &type){mInfo=info;mType=type;}
+    void setFile(const QFileInfo &info,const QString &type);
     QString curentPath(){return mInfo.filePath();}
 
 signals:
@@ -28,10 +28,9 @@ private:
     QFileInfo   mInfo;
     QString     mType;
 
-
-    void createImageThumbnail();
-    void createPdfThumbnail();
-    void createVideoThumbnail();
+    void createImageThumbnail(const QString &filePath, QImage &image);
+    void createPdfThumbnailGS(const QString& filePath, QImage &image);
+    void createVideoThumbnail(const QString& filePath, QImage &image);
     QMap<QString,QString> videoInfo();
 };
 
@@ -43,11 +42,22 @@ public:
     explicit Thumbnails(QObject *parent = nullptr);
     //!
    ~Thumbnails();
+
+    enum class Size {
+        Normal,
+        Large,
+        XLarge,
+        XXLarge,
+        Fail
+    };
+
+    QIcon getThumbnail(const QFileInfo& fi, Size size = Size::Normal);
+
 signals:
     void updateThumbnail(const QString &path);
 
 public slots:
-    void addFileName(const QFileInfo &info, const QString &type);
+    void addFileName(const QFileInfo &info);
     void directoryChanged(const QString &path);
 
 private slots:
@@ -67,8 +77,6 @@ private:
     bool      canReadVideo;
 
     QMap<QString,QString>myMap;
-
-
 };
 
 #endif // THUMBNAILS_H

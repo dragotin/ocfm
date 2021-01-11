@@ -39,7 +39,10 @@
 #include <QFileSystemModel>
 
 //____________________________________________________________________
-ItemDelegate::ItemDelegate(bool modern):isTreeview(false),isModernMode(modern)
+ItemDelegate::ItemDelegate(bool modern, Thumbnails *thumbnails)
+    :isTreeview(false),
+      isModernMode(modern),
+      _thumbFactory(thumbnails)
 {
 
     mSymlinkIcon=EIcon::fromTheme("emblem-symbolic-link");
@@ -48,7 +51,7 @@ ItemDelegate::ItemDelegate(bool modern):isTreeview(false),isModernMode(modern)
 
    // mSymlinkIcon=EIcon::fromTheme("inode-symlink");//application-x-zerosize
 
-    imageCache  =new QMap<QString ,QIcon>  ;
+    iconCache  =new QMap<QString ,QIcon>  ;
 
     iconCache   =new QMap<QString ,QIcon>  ;
 
@@ -112,60 +115,6 @@ int lineNumber(QString txt,const QStyleOptionViewItem &option,int _w)
 
 }
 
-
-QIcon ItemDelegate::iconThumbnails(const QString &file, const QString &type) const
-{
-     QFileInfo fi(file);
-    if(fi.path()==thumbnailCache)return QIcon();
-
-    QMessageAuthenticationCode code(QCryptographicHash::Md5);
-    code.addData(file.toUtf8());
-    QString md5Name=code.result().toHex();
-    QString fileThumbnail=thumbnailCache+"/"+md5Name;
-
-    bool hasThumb=false;
-    bool hasImage=false;
-    QString fileIcon;
-
-    // ---------------------- if Thumbnail file exist -----------------------
-    if(QFile::exists(fileThumbnail)){
-        QImageReader reader(fileThumbnail);
-        if(reader.canRead()){
-            QString fModified=reader.text(D_KEY_DATETIME);
-            if(fModified== fi.lastModified().toString("dd MM yyyy hh:mm:ss")){
-                hasImage=true;
-                hasThumb=true;
-                fileIcon=fileThumbnail;
-            }else{ QFile::remove(fileThumbnail); }
-
-        }else{ QFile::remove(fileThumbnail); }
-    }
-
-    // ----------------if no thumbnail file and size < 128--------------------
-    if(!hasThumb){
-        QImageReader reader(file);
-        if(reader.canRead()){
-            if(qMax(reader.size().width(),reader.size().height())<=128){
-                // hasImage=   image.load((file));
-                hasImage=true;
-                fileIcon=file;
-            }
-        }
-    }
-
-    //-------------if no thumbnail and image size > 128-------------------
-    if(!hasThumb && ! hasImage )  emit requireThumb(fi,type);
-
-
-    if(hasImage && !fileIcon.isEmpty()){
-        QIcon icon;
-        icon.addFile(fileIcon,QSize(128,128));
-        return icon;
-    }
-
-    return QIcon();
-}
-
 //______________________________________________________________________________
 QIcon ItemDelegate::decoration(const QModelIndex &index)const
 {
@@ -217,33 +166,32 @@ QIcon ItemDelegate::decoration(const QModelIndex &index)const
 
 
         //---------------------------------------THUMBNAILS
-    if(imageCache->contains(filePath)) return imageCache->value(filePath);
+    if(iconCache->contains(filePath)) return iconCache->value(filePath);
 
     QIcon retIcon;
-    if(mThumbnail)
+    if(mThumbnail && _thumbFactory)
     {
+
         //--------------------------------------- IMAGES TYPE
         if( mim.startsWith(D_IMAGE_TYPE) )
         {
-            if( QImageReader::supportedMimeTypes().contains(mim.toLatin1())) {
-                retIcon=iconThumbnails(filePath,D_IMAGE_TYPE);
-            }
+            retIcon = _thumbFactory->getThumbnail(info);
         }// image
 
         //--------------------------------------- PDF TYPE
         else if( mPdfThumbnail && mim.endsWith(D_PDF_TYPE) )
         {
-            retIcon=iconThumbnails(filePath,D_PDF_TYPE);
+            retIcon = _thumbFactory->getThumbnail(info);
         }// pdf
 
         //--------------------------------------- VIDEO TYPE
         else if(mVideoThumbnail && mim.startsWith(D_VIDEO_TYPE) )
         {
-            retIcon=iconThumbnails(filePath,D_VIDEO_TYPE);
+            retIcon = _thumbFactory->getThumbnail(info);
         }// video
 
         if (!retIcon.isNull()) {
-            imageCache->insert(filePath, retIcon);
+            iconCache->insert(filePath, retIcon);
         }
     }// mThumbnail
 
@@ -644,7 +592,7 @@ QIcon::Mode ItemDelegate::iconModeFromState(const QStyle::State state)
  {
 
      qDebug()<<"clearItemCache"<<file;
-     imageCache->remove(file) ;
+     iconCache->remove(file) ;
      iconCache ->remove(file)  ;
     // folderCache->remove(file)   ;
      deskCache->remove(file)  ;

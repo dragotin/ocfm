@@ -45,6 +45,6 @@ linux-g++*: {
 
  INSTALLS +=    elokabConfig \
                 elokabData \
-                applicationsData
-#                elokablib
+                applicationsData \
+                elokablib
 
