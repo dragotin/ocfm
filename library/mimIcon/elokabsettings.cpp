@@ -162,7 +162,7 @@ sync();
 QString ElokabSettings::loadStyleWidget()
 {
   this->beginGroup("Style");
-    QString style=this->value("Name",trUtf8("default")).toString();
+    QString style=this->value("Name",tr("default")).toString();
   this->endGroup();
     return style;
 }
@@ -171,7 +171,7 @@ QString ElokabSettings::loadtheme()
 {
     sync();
   this->beginGroup("Themes");
-    QString Theme=this->value("ThemeName",trUtf8("default")).toString();
+    QString Theme=this->value("ThemeName",tr("default")).toString();
   this->endGroup();
 
     return Theme;

@@ -381,10 +381,10 @@ void SearchView::on_treeWidget_currentItemChanged(QTreeWidgetItem *, QTreeWidget
                QString path=fi.path();
 
                if(QFile::rename(fi.absoluteFilePath(),path+"/"+newText)){
-                    previous->setData(0,Qt::UserRole,path+"/"+newText);
+                    previous->setData(0,Qt::UserRole, QVariant(path+"/"+newText));
 
                     mSysWatcher->removePath(fi.absoluteFilePath());
-                    mSysWatcher->addPath(path+"/"+newText);
+                    mSysWatcher->addPath(QString(path+"/"+newText));
                }else{
 
                     previous->setText(0,mCurrentEditable);

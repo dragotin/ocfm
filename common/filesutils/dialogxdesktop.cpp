@@ -112,7 +112,7 @@ void DialogXdesktop::on_toolButtonIcon_clicked()
         QFileDialog dlg;
 //".png", ".svg", ".svgz", ".svg.gz", ".xpm"
         QString fn = dlg.getOpenFileName(this, tr("Open Images Files..."),
-                                         QDir::homePath(), trUtf8("Image File (*.png *.svg *.svgz *.svg.gz *.xpm);;All Files (*)"));
+                                         QDir::homePath(), tr("Image File (*.png *.svg *.svgz *.svg.gz *.xpm);;All Files (*)"));
         if (!fn.isEmpty())
         {
                   ui->toolButtonIcon->setIcon(QIcon(fn));
@@ -127,7 +127,7 @@ void DialogXdesktop::on_pushButton_clicked()
         QFileDialog dlg;
 
         QString fn = dlg.getOpenFileName(this, tr("Open Files..."),
-                                         QDir::homePath(), trUtf8("All Files (*)"));
+                                         QDir::homePath(), tr("All Files (*)"));
         if (!fn.isEmpty())
         {
                   ui->lineEditCommand->setText(fn);
