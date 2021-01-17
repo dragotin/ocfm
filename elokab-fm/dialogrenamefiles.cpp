@@ -286,7 +286,7 @@ void DialogRenameFiles::applyChange()
 
        if(  QFile::rename(oldFilePath,path+"/"+newName)){
            item->setText(0,newName);
-           item->setData(0,Qt::UserRole,path+"/"+newName);
+           item->setData(0,Qt::UserRole,QVariant(path+"/"+newName));
            item->setData(1,Qt::UserRole,oldFilePath);
            item->setText(1,QString());
           // ui->toolButtonUndo->setEnabled(true);

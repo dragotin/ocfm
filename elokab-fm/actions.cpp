@@ -377,7 +377,7 @@ Actions::Actions(Settings *setting, const QString &lc, QObject *parent) :
 
      //-----------mMenufile--------
      mMenufile=new QMenu(tr("&File"));
-     mMenuNew=new QMenu(trUtf8("Create New"));
+     mMenuNew=new QMenu(tr("Create New"));
      setupMenuTemplate();
      mMenufile ->addMenu(mMenuNew);
      mMenufile->addSeparator();
@@ -742,7 +742,11 @@ QMenu *Actions::menuOpenWith(const QString &url,const QString &type)
           hash=EMimIcon:: desktopFile(fpath,m_lC);
 
           QAction *actProc=new QAction(EIcon::fromTheme(hash["Icon"].toString()),hash["Name"].toString(),this);
-          actProc->setData(hash["Exec"].toString()+" \""+url+"\"");
+	  QString h = hash["Exec"].toString();
+	  h.append( QString("\"%1\"").arg(url));
+
+          // actProc->setData(hash["Exec"].toString().append(+" \""+url+"\"");
+	  actProc->setData(h);
           connect(actProc,SIGNAL(triggered()),this,SLOT(actionOpenwith()));
           listActs.append(actProc);
           // menuOpenW->addAction(actProc);

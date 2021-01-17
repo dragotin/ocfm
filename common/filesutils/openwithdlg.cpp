@@ -79,10 +79,10 @@ void OpenWithDlg::slotExecChanged(const QString &txt)
 void OpenWithDlg::chargeTreeWidgetFillBack()
 {
     QStringList list;
-    list<<trUtf8("Islamic")<<trUtf8("Office")<<trUtf8("AudioVideo")<<trUtf8("Graphics")
-       <<trUtf8("Game")<<trUtf8("Development")<<trUtf8("Utility")
-      <<trUtf8("Network")<<trUtf8("Settings")<<trUtf8("System")
-     <<trUtf8("Other");
+    list<< tr("Islamic")<<tr("Office")<<tr("AudioVideo")<<tr("Graphics")
+       <<tr("Game")<<tr("Development")<<tr("Utility")
+      <<tr("Network")<<tr("Settings")<<tr("System")
+     <<tr("Other");
     enum  { NumIndex = 11};
     QTreeWidgetItem *item[NumIndex];
     for(int i=0 ;i<list.count();i++){

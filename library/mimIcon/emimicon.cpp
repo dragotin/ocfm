@@ -799,7 +799,7 @@ QHash<QString ,qint64> EMimIcon::getDriveInfo(QString path)
 {
 
      struct statfs info;
-     statfs(path.toLocal8Bit(), &info);
+     statfs(path.toLocal8Bit().data(), &info);
      QHash<QString ,qint64>hash;
      if(info.f_blocks == 0) return hash;
 
