@@ -49,7 +49,7 @@ public:
 
      static QString libDir();
 
-      static QString thumbnaileCachDir();
+      static QString personalThumbnailsCacheDir();
     //!$XDG_CACHE_HOME default $HOME/.cache/elokab/+appName
     static QString cachDir();
     //!

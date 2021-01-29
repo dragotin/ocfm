@@ -18,16 +18,14 @@ namespace {
 
         QMessageAuthenticationCode code(QCryptographicHash::Md5);
 
-        if (!file.startsWith("file://")) {
-            code.addData("file://");
-        }
+        Q_ASSERT(file.startsWith("file:/"));
 
         code.addData(file.toUtf8());
         return code.result().toHex();
     }
 
-    QString thumbnailFilePathPersonal(const QString& file, Thumbnails::Size size) {
-        QString tnFilePath = Edir::thumbnaileCachDir();
+    QString thumbnailFilePath(const QString& basePath, const QString& file, Thumbnails::Size size) {
+        QString tnFilePath {basePath};
 
         if (size == Thumbnails::Size::Normal)
             tnFilePath.append("normal/");
@@ -45,11 +43,54 @@ namespace {
         return tnFilePath;
     }
 
+    QIcon readFromCache(const QFileInfo& file, Thumbnails::CacheType cache, Thumbnails::Size size) {
+
+        QString cacheBasePath {Edir::personalThumbnailsCacheDir()};
+        QString fileName = QStringLiteral("file://")+file.absoluteFilePath();
+
+        if (cache == Thumbnails::CacheType::Shared) {
+            cacheBasePath = file.absolutePath();
+            if( !cacheBasePath.endsWith('/')) cacheBasePath.append("/");
+            cacheBasePath.append(QStringLiteral(".sh_thumbnails/"));
+            fileName = QStringLiteral("file:/") + file.fileName(); // the shared cache only uses the filename
+        }
+        const QString cacheFile = thumbnailFilePath(cacheBasePath, fileName, size);
+
+        QString iconFile;
+        if (QFile::exists(cacheFile)){
+            QImage reader(cacheFile);
+            QStringList keys = reader.textKeys();
+            const QString fModified = reader.text(THUMB_LAST_MODIFIED);
+            if( !fModified.isEmpty() &&
+                    fModified == QString::number(file.lastModified().toSecsSinceEpoch())) {
+                iconFile = cacheFile;
+            } else {
+                QFile::remove(iconFile);
+            }
+        } else {
+            // there is no thumbnail file in personal cache. Check if the file is small
+            // enough to read it directly.
+            QImageReader reader(file.absoluteFilePath());
+            if(reader.canRead()){
+                if(qMax(reader.size().width(),reader.size().height())<=128){
+                    // hasImage=   image.load((file));
+                    iconFile = file.absoluteFilePath();
+                }
+            }
+        }
+        // if the fileIcon is set, load the image in there and be done.
+        QIcon icon;
+        if( !iconFile.isEmpty() ){
+            icon.addFile(iconFile, QSize(128,128)); // FIXME handle size properly.
+        }
+        return icon;
+    }
 }
 
 //***********************  Thumbnails ***********************
 
 Thumbnails::Thumbnails(QObject *parent) : QObject(parent)
+  , mCacheType{CacheType::Personal}
 {
     canReadPdf=EMimIcon::findProgram("gs");
    // canReadVideo=EMimIcon::findProgram("ffmpeg");
@@ -123,55 +164,25 @@ void Thumbnails::startNewThread()
 //_____________________________________________________________
 QIcon Thumbnails::getThumbnail( const QFileInfo& fi, Size size)
 {
-    // --------- Read from personal repository first
+    // Read from personal cache first, if that does not return anything,
+    // check the shared one.
+    QIcon icon = readFromCache(fi, CacheType::Personal, size);
 
-    // --------- If still empty, read from shared repo
-
-    bool hasThumb=false;
-    bool hasImage=false;
-    QString fileIcon;
-
-    const QString fileThumbnail = thumbnailFilePathPersonal(fi.absoluteFilePath(), size);
-
-    // ---------------------- if Thumbnail file exist -----------------------
-    if(QFile::exists(fileThumbnail)){
-        QImage reader(fileThumbnail);
-        QStringList keys = reader.textKeys();
-        const QString fModified = reader.text(THUMB_LAST_MODIFIED); // THUMB_LAST_MODIFIED);
-        if( !fModified.isEmpty() &&
-                fModified == QString::number(fi.lastModified().toSecsSinceEpoch())) {
-            hasImage=true;
-            hasThumb=true;
-            fileIcon=fileThumbnail;
-        } else {
-            QFile::remove(fileThumbnail);
-        }
+    if (icon.isNull()) {
+        icon = readFromCache(fi, CacheType::Shared, size);
+        if (!icon.isNull())
+            qDebug() << "Read thumbnail from shared thumbnail cache for" << fi;
+    } else {
+        qDebug() << "Read thumbnail from personal thumbnail cache for" << fi;
     }
 
-    // ----------------if no thumbnail file and size < 128--------------------
-    if(!hasThumb){
-        QImageReader reader(fi.absoluteFilePath());
-        if(reader.canRead()){
-            if(qMax(reader.size().width(),reader.size().height())<=128){
-                // hasImage=   image.load((file));
-                hasImage=true;
-                fileIcon=fi.absoluteFilePath();
-            }
-        }
-    }
-
-    //-------------if no thumbnail and image size > 128-------------------
-    if(!hasThumb && ! hasImage ) {
+    if (icon.isNull()) {
+        // add the file to start the render thread
+        qDebug() << "Could not read file thumbnail from cache, creating" << fi;
         addFileName(fi);
     }
 
-    if(hasImage && !fileIcon.isEmpty()){
-        QIcon icon;
-        icon.addFile(fileIcon,QSize(128,128));
-        return icon;
-    }
-
-    return QIcon();
+    return icon;
 }
 
 //_____________________________________________________________
@@ -184,10 +195,17 @@ void Thumbnails::startRender()
     QString   type = myMap.first();
     QFileInfo info(filename);
 
-    mThread->setFile(info,type);
+    mThread->setFile(info, type, mCacheType);
     mThread->start();
 }
 
+void Thumbnails::createInSharedCache(bool shared)
+{
+    if (shared)
+        mCacheType = Thumbnails::CacheType::Shared;
+    else
+        mCacheType = Thumbnails::CacheType::Personal; // the default
+}
 
 //***********************  THREAD ******************************
 
@@ -195,44 +213,54 @@ void Thread::run()
 {
     // Get the input data out of the critical variables
     _mutex.lock();
-    const QString filePath = mInfo.filePath();
+    QString md5FilePath = QStringLiteral("file://")+mInfo.filePath();
     const QString lastMod = QString::number(mInfo.lastModified().toSecsSinceEpoch());
     quint64 fileSize = mInfo.size();
+    Thumbnails::CacheType cacheType = mWriteToCacheType;
     _mutex.unlock();
 
-    const QString fileThumbnail = thumbnailFilePathPersonal(filePath, Thumbnails::Size::Normal);
+    QString cacheBasePath {Edir::personalThumbnailsCacheDir()};
+    if (cacheType == Thumbnails::CacheType::Shared) {
+        cacheBasePath = mInfo.absolutePath();
+        if( !cacheBasePath.endsWith('/')) cacheBasePath.append("/");
+        cacheBasePath.append(QStringLiteral(".sh_thumbnails/"));
+        md5FilePath = QStringLiteral("file:/") + mInfo.fileName(); // the shared cache only uses the filename
+    }
 
+    const QString fileThumbnail = thumbnailFilePath(cacheBasePath, md5FilePath, Thumbnails::Size::Normal);
+    qDebug() << "Got thumbFile " << fileThumbnail << "from" << md5FilePath << "in" << cacheBasePath;
     // create an empty image to fill in the thumbnail. It is passed to the
     // creator functions by reference, so they fill it.
     QImage image;
 
     if(mType.startsWith(D_IMAGE_TYPE))  {
-        createImageThumbnail(filePath, image);
+        createImageThumbnail(mInfo.filePath(), image);
     } else if(mType.endsWith(D_PDF_TYPE))  {
-        createPdfThumbnailGS(filePath, image);
+        createPdfThumbnailGS(mInfo.filePath(), image);
     } else if(mType.startsWith(D_VIDEO_TYPE)) {
-        createVideoThumbnail(filePath, image);
+        createVideoThumbnail(mInfo.filePath(), image);
     }
 
     // if there is a resulting image, it is saved with some metadata.
     if (!image.isNull()) {
         image.setText(THUMB_LAST_MODIFIED, lastMod);
-        image.setText(THUMB_URI, QStringLiteral("file://")+filePath);
+        image.setText(THUMB_URI, md5FilePath);
         // image.setText(THUMB_MIMETYPE, ) FIXME
         image.setText(THUMB_SIZE, QString::number(fileSize));
 
         if(image.save(fileThumbnail)) {
-            qDebug()<<__FILE__<<__FUNCTION__<<"image saved"<< filePath;
+            qDebug()<<__FILE__<<__FUNCTION__<<"image saved"<< md5FilePath;
         }
     }
-    emit terminated(filePath);
+    emit terminated(mInfo.filePath());
 }
 
-void Thread::setFile(const QFileInfo &info,const QString &type)
+void Thread::setFile(const QFileInfo &info,const QString &mimeType, Thumbnails::CacheType cacheType)
 {
     QMutexLocker locker(&_mutex);
-    mInfo=info;
-    mType=type;
+    mInfo = info;
+    mType = mimeType;
+    mWriteToCacheType = cacheType;
 }
 
 //***************************************************************

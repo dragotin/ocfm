@@ -185,7 +185,7 @@ void FileInformation::setFileInformation(const QFileInfo &fi, bool isOwnclouded)
         QMessageAuthenticationCode code(QCryptographicHash::Md5);
         code.addData(mFile.toUtf8());
         QString md5Name=code.result().toHex();
-        QString fileThumbnail=Edir::thumbnaileCachDir()+"/"+md5Name;
+        QString fileThumbnail=Edir::personalThumbnailsCacheDir()+"/"+md5Name;
 
         if(QFile::exists(fileThumbnail)){
             if(pix.load(fileThumbnail))

@@ -5,36 +5,10 @@
 #include <QMap>
 #include <QFileInfo>
 #include <QThread>
-//*********************THREAD**************************
-class Thread : public QThread
-{
-    Q_OBJECT
-
-public:
-    Thread(){}
-
-    void setFile(const QFileInfo &info,const QString &type);
-    QString curentPath(){return mInfo.filePath();}
-
-signals:
-    void terminated(const QString &path);
-    void excluded(const QString &path);
-
-
-protected:
-    void run();
-
-private:
-    QFileInfo   mInfo;
-    QString     mType;
-
-    void createImageThumbnail(const QString &filePath, QImage &image);
-    void createPdfThumbnailGS(const QString& filePath, QImage &image);
-    void createVideoThumbnail(const QString& filePath, QImage &image);
-    QMap<QString,QString> videoInfo();
-};
 
 //*********************THUMBNAILS**************************
+class Thread;
+
 class Thumbnails : public QObject
 {
     Q_OBJECT
@@ -51,6 +25,11 @@ public:
         Fail
     };
 
+    enum class CacheType {
+        Personal,
+        Shared
+    };
+
     QIcon getThumbnail(const QFileInfo& fi, Size size = Size::Normal);
 
 signals:
@@ -59,6 +38,7 @@ signals:
 public slots:
     void addFileName(const QFileInfo &info);
     void directoryChanged(const QString &path);
+    void createInSharedCache(bool shared);
 
 private slots:
     void startRender();
@@ -76,7 +56,40 @@ private:
     bool      canReadPdf;
     bool      canReadVideo;
 
+    CacheType mCacheType;
     QMap<QString,QString>myMap;
 };
+
+//*********************THREAD**************************
+
+class Thread : public QThread
+{
+    Q_OBJECT
+
+public:
+    Thread(){}
+
+    void setFile(const QFileInfo &info,const QString &type, Thumbnails::CacheType cacheType);
+    QString curentPath(){return mInfo.filePath();}
+
+signals:
+    void terminated(const QString &path);
+    void excluded(const QString &path);
+
+
+protected:
+    void run();
+
+private:
+    QFileInfo   mInfo;
+    QString     mType;
+    Thumbnails::CacheType mWriteToCacheType;
+
+    void createImageThumbnail(const QString &filePath, QImage &image);
+    void createPdfThumbnailGS(const QString& filePath, QImage &image);
+    void createVideoThumbnail(const QString& filePath, QImage &image);
+    QMap<QString,QString> videoInfo();
+};
+
 
 #endif // THUMBNAILS_H

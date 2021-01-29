@@ -62,7 +62,7 @@ void SettingsDlg::on_pushButtonClean_clicked()
     int ret = msgBox.exec();
     if(ret==QMessageBox::Cancel)return;
 
-    QDir dirCache(Edir::thumbnaileCachDir());
+    QDir dirCache(Edir::personalThumbnailsCacheDir());
     QStringList list=dirCache.entryList();
     foreach (QString s, list) {
         QString fileThumb=dirCache.absoluteFilePath(s);
@@ -91,7 +91,7 @@ void SettingsDlg::on_pushButtonRmove_clicked()
      int ret = msgBox.exec();
      if(ret==QMessageBox::Cancel)return;
 
-    QDir dirCache(Edir::thumbnaileCachDir());
+    QDir dirCache(Edir::personalThumbnailsCacheDir());
     QStringList list=dirCache.entryList();
     foreach (QString s, list) {
         QString file=dirCache.absoluteFilePath(s);

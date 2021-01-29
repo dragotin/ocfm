@@ -57,7 +57,7 @@ ItemDelegate::ItemDelegate(bool modern, Thumbnails *thumbnails)
 
     deskCache   =new QMap<QString ,QIcon>  ;
 
-    thumbnailCache=Edir::thumbnaileCachDir();
+    thumbnailCache=Edir::personalThumbnailsCacheDir();
 
 //isTreeview=false;
 //isModernMode=true;

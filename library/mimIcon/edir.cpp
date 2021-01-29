@@ -137,7 +137,7 @@ QString Edir::applicationsHomeDir()
     return dir.absolutePath();
 }
 //_________________________________________________________________
-QString Edir::thumbnaileCachDir()
+QString Edir::personalThumbnailsCacheDir()
 {
     QString cacheDir;
 
