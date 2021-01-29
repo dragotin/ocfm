@@ -1141,12 +1141,12 @@ settings.endGroup();
 
     QTextStream out(&fileS);
     out.setCodec(QTextCodec::codecForName("UTF-8"));
-    out<<"[Desktop Entry]"<< endl;;
-    out<<"Type=Application"<< endl;
-    out<<"Name="<<fi.baseName()<< endl;
-    out<<"Icon=application-x-desktop"<< endl;
-    out<<"Exec="<<exec<< endl;
-    out<<"NoDisplay=true\n"<< endl;
+    out<<"[Desktop Entry]"<< Qt::endl;;
+    out<<"Type=Application"<< Qt::endl;
+    out<<"Name="<<fi.baseName()<< Qt::endl;
+    out<<"Icon=application-x-desktop"<< Qt::endl;
+    out<<"Exec="<<exec<< Qt::endl;
+    out<<"NoDisplay=true\n"<< Qt::endl;
     fileS.close();
 
     return QFileInfo(fileName).fileName();

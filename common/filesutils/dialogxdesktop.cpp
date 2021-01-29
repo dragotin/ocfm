@@ -93,13 +93,13 @@ void DialogXdesktop::saveDesktopApp()
 
         QTextStream out(&fileS);
         out.setCodec(QTextCodec::codecForName("UTF-8"));
-        out<<"[Desktop Entry]"<< endl;;
-        out<<"Type=Application"<< endl;
-        out<<"Name="<<ui->lineEditName->text()<< endl;
-        out<<"Comment="<<ui->lineEditComment->text()<< endl;
-        out<<"Description="<<ui->lineEditDescription->text()<< endl;
-        out<<"Icon="<<m_iconName<< endl;
-        out<<"Exec="<<ui->lineEditCommand->text()<< endl;
+        out<<"[Desktop Entry]"<< Qt::endl;
+        out<<"Type=Application"<< Qt::endl;
+        out<<"Name="<<ui->lineEditName->text()<< Qt::endl;
+        out<<"Comment="<<ui->lineEditComment->text()<< Qt::endl;
+        out<<"Description="<<ui->lineEditDescription->text()<< Qt::endl;
+        out<<"Icon="<<m_iconName<< Qt::endl;
+        out<<"Exec="<<ui->lineEditCommand->text()<< Qt::endl;
 
         fileS.close();
 //---------------------------------------------------------------------
