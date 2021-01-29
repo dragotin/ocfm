@@ -26,7 +26,7 @@ WidgetAbout::WidgetAbout(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->labelAuthor->setText(tr("Abouzakaria"));
-    ui->labelLisence->setText(tr("Gpl3"));
+    ui->labelLisence->setText(tr("GNU General Public License v3.0 or later"));
     ui->labelVersion->setText(QApplication::applicationVersion());
     ui->labelAppName->setText(QApplication::applicationName());
     ui->textEditThinks->setText( tr(
