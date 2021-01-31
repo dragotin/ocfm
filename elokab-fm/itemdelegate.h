@@ -88,11 +88,9 @@ private slots:
 
 private:
 
-    QMap<QString ,QIcon>  *iconCache ;
-    QMap<QString ,QIcon>  *deskCache;
-
-
-    QString thumbnailCache;
+    QScopedPointer<QMap<QString ,QIcon> > mIconCache;
+    QScopedPointer<QMap<QString ,QIcon> > mDeskCache;
+    QScopedPointer<QMap<QString, QIcon> > mMimeCache;
 
     QIcon mSymlinkIcon;
     QIcon mOwncloudDehydIcon;

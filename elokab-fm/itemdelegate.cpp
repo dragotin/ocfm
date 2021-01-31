@@ -49,18 +49,13 @@ ItemDelegate::ItemDelegate(bool modern, Thumbnails *thumbnails)
     mOwncloudDehydIcon = EIcon::fromTheme("cloudstatus");
     // mOwncloudIcon = EIcon::fromTheme("cloudstatus");
 
+    mMimeCache.reset( new QMap<QString, QIcon> );
+    mDeskCache.reset( new QMap<QString, QIcon> );
+    mIconCache.reset( new QMap<QString, QIcon> );
    // mSymlinkIcon=EIcon::fromTheme("inode-symlink");//application-x-zerosize
 
-    iconCache  =new QMap<QString ,QIcon>  ;
-
-    iconCache   =new QMap<QString ,QIcon>  ;
-
-    deskCache   =new QMap<QString ,QIcon>  ;
-
-    thumbnailCache=Edir::personalThumbnailsCacheDir();
-
-//isTreeview=false;
-//isModernMode=true;
+    //isTreeview=false;
+    //isModernMode=true;
 }
 
 
@@ -153,55 +148,57 @@ QIcon ItemDelegate::decoration(const QModelIndex &index)const
 
     if (mim=="application/x-desktop") {
         //---------------------------------------X-DESKTOP
-        if(deskCache->contains(filePath))
-            return deskCache->value(filePath);
+        if(mDeskCache->contains(filePath))
+            return mDeskCache->value(filePath);
 
         QIcon icon = EMimIcon::iconDesktopFile(filePath).pixmap(128).scaled(128,128);
 
         if(!icon.isNull())
-            deskCache->insert(filePath,icon);
+            mDeskCache->insert(filePath,icon);
 
         return icon;
     }
 
-
-        //---------------------------------------THUMBNAILS
-    if(iconCache->contains(filePath)) return iconCache->value(filePath);
+    //---------------------------------------THUMBNAILS
+    if(mIconCache->contains(filePath))
+        return mIconCache->value(filePath);
 
     QIcon retIcon;
     if(mThumbnail && _thumbFactory)
     {
+        bool isDehydrated = index.data(D_OWNCLOUD_DEHYDRATED).toBool();
+        Thumbnails::Size size = Thumbnails::Size::Normal;
 
         //--------------------------------------- IMAGES TYPE
         if( mim.startsWith(D_IMAGE_TYPE) )
         {
-            retIcon = _thumbFactory->getThumbnail(info);
+            retIcon = _thumbFactory->getThumbnail(info, size, isDehydrated);
         }// image
 
         //--------------------------------------- PDF TYPE
         else if( mPdfThumbnail && mim.endsWith(D_PDF_TYPE) )
         {
-            retIcon = _thumbFactory->getThumbnail(info);
+            retIcon = _thumbFactory->getThumbnail(info, size, isDehydrated);
         }// pdf
 
         //--------------------------------------- VIDEO TYPE
         else if(mVideoThumbnail && mim.startsWith(D_VIDEO_TYPE) )
         {
-            retIcon = _thumbFactory->getThumbnail(info);
+            retIcon = _thumbFactory->getThumbnail(info, size, isDehydrated);
         }// video
 
         if (!retIcon.isNull()) {
-            iconCache->insert(filePath, retIcon);
+            mIconCache->insert(filePath, retIcon);
         }
     }// mThumbnail
 
     //--------------------------------------- OTHER TYPE
-    if(retIcon.isNull() && iconCache->contains(mim))
-        return iconCache->value(mim);
+    if(retIcon.isNull() && mMimeCache->contains(mim))
+        return mMimeCache->value(mim);
 
     if(retIcon.isNull()) {
         retIcon=EMimIcon::iconByMimType(mim,filePath);
-        iconCache->insert(mim, retIcon);
+        mMimeCache->insert(mim, retIcon);
     }
 
     if(retIcon.isNull()) {
@@ -592,10 +589,10 @@ QIcon::Mode ItemDelegate::iconModeFromState(const QStyle::State state)
  {
 
      qDebug()<<"clearItemCache"<<file;
-     iconCache->remove(file) ;
-     iconCache ->remove(file)  ;
+     mIconCache->remove(file) ;
+     mIconCache ->remove(file)  ;
     // folderCache->remove(file)   ;
-     deskCache->remove(file)  ;
+     mDeskCache->remove(file)  ;
 
 
  }
