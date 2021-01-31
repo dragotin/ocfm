@@ -42,7 +42,7 @@ namespace {
         return tnFilePath;
     }
 
-    QIcon readFromCache(const QFileInfo& file, Thumbnails::CacheType cache, Thumbnails::Size size) {
+    QIcon readFromCache(const QFileInfo& file, Thumbnails::CacheType cache, Thumbnails::Size size, bool dehydrated) {
 
         QString cacheBasePath {Edir::personalThumbnailsCacheDir()};
         QString fileName = QStringLiteral("file://")+file.absoluteFilePath();
@@ -57,14 +57,19 @@ namespace {
 
         QString iconFile;
         if (QFile::exists(cacheFile)){
-            QImage reader(cacheFile);
-            QStringList keys = reader.textKeys();
-            const QString fModified = reader.text(THUMB_LAST_MODIFIED);
-            if( !fModified.isEmpty() &&
-                    fModified == QString::number(file.lastModified().toSecsSinceEpoch())) {
-                iconFile = cacheFile;
-            } else {
-                QFile::remove(iconFile);
+            iconFile = cacheFile;
+
+            // for real files check if the Modtime is fine.
+            if(!dehydrated) {
+                QImage reader(cacheFile);
+                QStringList keys = reader.textKeys();
+                const QString fModified = reader.text(THUMB_LAST_MODIFIED);
+
+                if( fModified.isEmpty() ||
+                        fModified != QString::number(file.lastModified().toSecsSinceEpoch())) {
+                    QFile::remove(iconFile);
+                    iconFile.clear(); // Do not try to load further down.
+                }
             }
         } else {
             // there is no thumbnail file in personal cache. Check if the file is small
@@ -79,7 +84,7 @@ namespace {
         }
         // if the fileIcon is set, load the image in there and be done.
         QIcon icon;
-        if( !iconFile.isEmpty() ){
+        if( !iconFile.isEmpty() ) {
             icon.addFile(iconFile, QSize(128,128)); // FIXME handle size properly.
         }
         return icon;
@@ -161,23 +166,23 @@ void Thumbnails::startNewThread()
 }
 
 //_____________________________________________________________
-QIcon Thumbnails::getThumbnail( const QFileInfo& fi, Size size)
+QIcon Thumbnails::getThumbnail( const QFileInfo& fi, Size size, bool dehydrated)
 {
     // Read from personal cache first, if that does not return anything,
     // check the shared one.
-    QIcon icon = readFromCache(fi, CacheType::Personal, size);
+    QIcon icon = readFromCache(fi, CacheType::Personal, size, dehydrated);
 
     if (icon.isNull()) {
-        icon = readFromCache(fi, CacheType::Shared, size);
+        icon = readFromCache(fi, CacheType::Shared, size, dehydrated);
         if (!icon.isNull())
-            qDebug() << "Read thumbnail from shared thumbnail cache for" << fi;
+            qDebug() << "Read thumbnail from shared thumbnail cache for" << fi.filePath();
     } else {
-        qDebug() << "Read thumbnail from personal thumbnail cache for" << fi;
+        qDebug() << "Read thumbnail from personal thumbnail cache for" << fi.filePath();
     }
 
-    if (icon.isNull()) {
+    if (icon.isNull() && !dehydrated) {
         // add the file to start the render thread
-        qDebug() << "Could not read file thumbnail from cache, creating" << fi;
+        qDebug() << "Could not read file thumbnail from cache, creating" << fi.filePath();
         addFileName(fi);
     }
 

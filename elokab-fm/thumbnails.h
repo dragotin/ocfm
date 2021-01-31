@@ -30,7 +30,7 @@ public:
         Shared
     };
 
-    QIcon getThumbnail(const QFileInfo& fi, Size size = Size::Normal);
+    QIcon getThumbnail(const QFileInfo& fi, Size size, bool dehydrated);
 
 signals:
     void updateThumbnail(const QString &path);
