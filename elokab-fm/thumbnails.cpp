@@ -135,9 +135,9 @@ void Thumbnails::addFileName(const QFileInfo &info)
    QMimeType mime = db.mimeTypeForFile(info);
    const QString mimeType = mime.name();
 
-   if(mime.inherits("application/pdf") && !canReadPdf       ) { return; }
+   if(mime.inherits("application/pdf") && !canReadPdf ) { return; }
 
-   if(mimeType.startsWith("video/") && !canReadVideo   ) { return; }
+   if(mimeType.startsWith("video/") && !canReadVideo  ) { return; }
 
    qDebug()<<__FILE__<<__FUNCTION__<<info.fileName()<< mimeType;
 
