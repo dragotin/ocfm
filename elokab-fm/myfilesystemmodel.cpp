@@ -109,13 +109,22 @@ QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
     }
 
     if (index.column() == D_COL_NAME) {
-        if (role == QFileSystemModel::FilePathRole || role == Qt::EditRole || role == Qt::DisplayRole) {
+        if (role == QFileSystemModel::FilePathRole) {
             if (!fi.isDir() && currentPathIsOwnCloud && dehydrated) {
-                QString file = fi.fileName();
-                if (file.length() > DehydrateLength)
+                QString file = fi.absoluteFilePath();
+                if (file.length() > DehydrateLength && file.endsWith(".owncloud"))
                     file.chop(DehydrateLength);
                 return file;
             }
+        }
+        if (role == Qt::EditRole || role == Qt::DisplayRole) {
+            if (!fi.isDir() && currentPathIsOwnCloud && dehydrated) {
+                QString file = fi.fileName();
+                if (file.length() > DehydrateLength && file.endsWith(".owncloud"))
+                    file.chop(DehydrateLength);
+                return file;
+            }
+
         }
     }
     const QVariant re = QFileSystemModel::data(index,role);
