@@ -1,4 +1,15 @@
+# An unintended Fork
+
+Attention, this is a kind of fork from the [original project elokab-fm](https://github.com/zakariakov/elokab-files-manager).
+
+It was tried to propose patches back via [Pullrequest](https://github.com/zakariakov/elokab-files-manager/pull/1)
+but that was not answered so far.
+
+I keep going to improve things here for the moment, especially with improvements for ownClouds Virtual Filesystem on Linux.
+
+
 # elokab-files-manager
+
 A lightweight  file manager for Linux desktops built in Qt.
 
 # مدير ملفات العقاب
