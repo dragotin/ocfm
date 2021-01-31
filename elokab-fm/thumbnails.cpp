@@ -8,6 +8,7 @@
 #include <EMimIcon>
 #include <QPainter>
 #include <QImageReader>
+#include <QCryptographicHash>
 
 namespace {
     QMutex _mutex;
@@ -16,12 +17,10 @@ namespace {
         if (file.isEmpty())
             return QString();
 
-        QMessageAuthenticationCode code(QCryptographicHash::Md5);
-
         Q_ASSERT(file.startsWith("file:/"));
-
-        code.addData(file.toUtf8());
-        return code.result().toHex();
+        const QByteArray hash = QCryptographicHash::hash(file.toUtf8(), QCryptographicHash::Md5);
+        const QString s {hash.toHex()};
+        return s;
     }
 
     QString thumbnailFilePath(const QString& basePath, const QString& file, Thumbnails::Size size) {
