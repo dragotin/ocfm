@@ -8,7 +8,7 @@ before_install:
   - sudo apt-get update -qq
 
 install:
-  - sudo apt-get -y install qt510base qt510scxml libgl1-mesa-dev extra-cmake-modules
+  - sudo apt-get -y install qt510base qt510scxml libgl1-mesa-dev extra-cmake-modules qt510translations qt510tools
   - source /opt/qt*/bin/qt*-env.sh
 
 script:
