@@ -6,7 +6,7 @@ A lightweight  file manager for Linux desktops built in Qt.
 
 Attention, this is a kind of fork from the [original project elokab-fm](https://github.com/zakariakov/elokab-files-manager).
 
-It was tried to propose patches back via [Pullrequest](https://github.com/zakariakov/elokab-files-manager/pull/1)
+It was tried to propose patches back via [pullrequest](https://github.com/zakariakov/elokab-files-manager/pull/1)
 but that was not answered so far.
 
 I keep going to improve things here for the moment, especially with improvements for ownClouds Virtual Filesystem on Linux.
@@ -35,12 +35,22 @@ Optional dependencies: imagemagick , ffmpeg
 
 # Install
 
-git clone https://gitlab.com/zakariakov/elokab-files-manager.git
+Other than the original project, this unintended fork uses cmake to build.
 
-cd elokab-files-manager
+Build instructions:
 
-qmake
+```
+    git clone git@github.com:dragotin/elokab-files-manager.git
 
-make
+    cd elokab-files-manager
 
-sudo make install
+    mkdir build
+
+    cd build
+
+    cmake ..
+
+    make
+
+    sudo make install
+```
