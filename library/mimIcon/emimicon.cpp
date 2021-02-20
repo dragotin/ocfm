@@ -49,6 +49,13 @@
 #include <QMimeType>
 #include <QMimeDatabase>
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+#define ENDL endl
+#elif
+#define ENDL Qt::endl
+#endif
+
+
 Q_GLOBAL_STATIC(EMimIcon, EMimIconInstance)
 EMimIcon *EMimIcon::instance()
 {
@@ -1141,12 +1148,12 @@ settings.endGroup();
 
     QTextStream out(&fileS);
     out.setCodec(QTextCodec::codecForName("UTF-8"));
-    out<<"[Desktop Entry]"<< Qt::endl;;
-    out<<"Type=Application"<< Qt::endl;
-    out<<"Name="<<fi.baseName()<< Qt::endl;
-    out<<"Icon=application-x-desktop"<< Qt::endl;
-    out<<"Exec="<<exec<< Qt::endl;
-    out<<"NoDisplay=true\n"<< Qt::endl;
+    out<<"[Desktop Entry]"<< ENDL;
+    out<<"Type=Application"<< ENDL;
+    out<<"Name="<<fi.baseName()<< ENDL;
+    out<<"Icon=application-x-desktop"<< ENDL;
+    out<<"Exec="<<exec<< ENDL;
+    out<<"NoDisplay=true\n"<< ENDL;
     fileS.close();
 
     return QFileInfo(fileName).fileName();

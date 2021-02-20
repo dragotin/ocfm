@@ -20,6 +20,7 @@
 
 #include "dialogxdesktop.h"
 #include "ui_dialogxdesktop.h"
+
 #include <EIcon>
 
 #include <QFileDialog>
@@ -27,6 +28,14 @@
 #include <QInputDialog>
 #include <QTextCodec>
 #include <QTextStream>
+#include <QtGlobal>
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+#define ENDL endl
+#elif
+#define ENDL Qt::endl
+#endif
+
 DialogXdesktop::DialogXdesktop(const QString &path,QWidget *parent) :
         QDialog(parent),
         ui(new Ui::DialogXdesktop), m_path(path)
@@ -93,13 +102,13 @@ void DialogXdesktop::saveDesktopApp()
 
         QTextStream out(&fileS);
         out.setCodec(QTextCodec::codecForName("UTF-8"));
-        out<<"[Desktop Entry]"<< Qt::endl;
-        out<<"Type=Application"<< Qt::endl;
-        out<<"Name="<<ui->lineEditName->text()<< Qt::endl;
-        out<<"Comment="<<ui->lineEditComment->text()<< Qt::endl;
-        out<<"Description="<<ui->lineEditDescription->text()<< Qt::endl;
-        out<<"Icon="<<m_iconName<< Qt::endl;
-        out<<"Exec="<<ui->lineEditCommand->text()<< Qt::endl;
+        out<<"[Desktop Entry]"<< ENDL;
+        out<<"Type=Application"<< ENDL;
+        out<<"Name="<<ui->lineEditName->text()<< ENDL;
+        out<<"Comment="<<ui->lineEditComment->text()<< ENDL;
+        out<<"Description="<<ui->lineEditDescription->text()<< ENDL;
+        out<<"Icon="<<m_iconName<< ENDL;
+        out<<"Exec="<<ui->lineEditCommand->text()<< ENDL;
 
         fileS.close();
 //---------------------------------------------------------------------

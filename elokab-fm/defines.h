@@ -1,6 +1,8 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
+#include <QtGlobal>
+
 #define D_OWNCLOUD      Qt::UserRole+6
 #define D_OWNCLOUD_DEHYDRATED Qt::UserRole+7
 #define D_MTYPE         Qt::UserRole+3
@@ -31,5 +33,11 @@
 #define D_COL_DATE      3
 #define D_COL_TRASHED   4
 #define D_COL_ORIGPATH  5
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+#define ENDL endl
+#elif
+#define ENDL Qt::endl
+#endif
 
 #endif // DEFINES_H
