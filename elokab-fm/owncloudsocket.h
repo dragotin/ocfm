@@ -26,6 +26,8 @@
 class ownCloudSocket : public QObject {
     Q_OBJECT
 public:
+    const static QString DehydSuffix;
+
     static ownCloudSocket *instance();
 
     bool isConnected() const;

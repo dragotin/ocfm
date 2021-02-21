@@ -19,6 +19,8 @@
 
 #include "fileinformation.h"
 #include "ui_fileinformation.h"
+#include "owncloudsocket.h"
+
 #include <EMimIcon>
 #include "messages.h"
 #include <QFileInfo>
@@ -60,7 +62,7 @@ void FileInformation::slotOwnCloudBtnClicked()
     list.append(mFile);
     ui->ownCloudButton->setEnabled(false);
 
-    if (mFile.endsWith(".owncloud")) {
+    if (mFile.endsWith(ownCloudSocket::DehydSuffix)) {
         emit sigOwncloudHydrate(list);
         // is dehydrated
     } else {
@@ -139,7 +141,7 @@ void FileInformation::setFileName(const QString &file, bool isOwnClouded, bool i
                 ui->labelOwnCloudFileStatus->setText(tr("ownCloud synced file"));
                 ui->ownCloudButton->setVisible(false);
             } else {
-                bool isDehydrated {fi.fileName().endsWith(".owncloud")};
+                bool isDehydrated {fi.fileName().endsWith(ownCloudSocket::DehydSuffix)};
                 if (isDehydrated) {
                     ui->labelOwnCloudFileStatus->setText(tr("ownCloud: Cloud file"));
                     ui->ownCloudButton->setText(tr("Download from ownCloud"));

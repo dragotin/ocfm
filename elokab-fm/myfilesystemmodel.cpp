@@ -1,4 +1,5 @@
 #include "myfilesystemmodel.h"
+#include "owncloudsocket.h"
 #include "defines.h"
 #include <EMimIcon>
 #include <QMimeData>
@@ -34,7 +35,7 @@ void MyFileSystemModel::slotDirLoaded(const QString& path)
 //--------------------------------------------------------------
 QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
 {
-    const int DehydrateLength = 9; // length of the string '.owncloud'
+    const int DehydrateLength = ownCloudSocket::DehydSuffix.length();
 
     if (!index.isValid())  return QVariant();
     QFileInfo fi = fileInfo(index);
@@ -45,7 +46,7 @@ QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
     bool dehydrated {false};
     if (currentPathIsOwnCloud) {
         QString fName = fi.fileName();
-        if (fName.endsWith(".owncloud")) {
+        if (fName.endsWith(ownCloudSocket::DehydSuffix)) {
             dehydrated = true;
         }
     }
@@ -77,7 +78,7 @@ QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
         }else{
             QFileInfo fi(fileInfo(index));
             QString fName = fileName(index);
-            if (fName.endsWith(".owncloud")) {
+            if (fName.endsWith(ownCloudSocket::DehydSuffix)) {
                 fName.chop(6);
             }
             fi.setFile(fName);
@@ -112,7 +113,7 @@ QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
         if (role == QFileSystemModel::FilePathRole) {
             if (!fi.isDir() && currentPathIsOwnCloud && dehydrated) {
                 QString file = fi.absoluteFilePath();
-                if (file.length() > DehydrateLength && file.endsWith(".owncloud"))
+                if (file.length() > DehydrateLength && file.endsWith(ownCloudSocket::DehydSuffix))
                     file.chop(DehydrateLength);
                 return file;
             }
@@ -120,7 +121,7 @@ QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
         if (role == Qt::EditRole || role == Qt::DisplayRole) {
             if (!fi.isDir() && currentPathIsOwnCloud && dehydrated) {
                 QString file = fi.fileName();
-                if (file.length() > DehydrateLength && file.endsWith(".owncloud"))
+                if (file.length() > DehydrateLength && file.endsWith(ownCloudSocket::DehydSuffix))
                     file.chop(DehydrateLength);
                 return file;
             }
@@ -128,11 +129,6 @@ QVariant MyFileSystemModel::data(const QModelIndex &index, int role) const
         }
     }
     const QVariant re = QFileSystemModel::data(index,role);
-
-    if (re.toString().endsWith(".owncloud")) {
-        qDebug() << "XXXXXXX";
-    }
-
     return re;
 
 

@@ -25,6 +25,8 @@
 
 #define APPLICATION_SHORTNAME "ownCloud"
 
+const QString ownCloudSocket::DehydSuffix  = QStringLiteral(".owncloud");
+
 ownCloudSocket* ownCloudSocket::instance()
 {
     static ownCloudSocket self;
