@@ -36,7 +36,7 @@
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 #define ENDL endl
-#elif
+#else
 #define ENDL Qt::endl
 #endif
 
