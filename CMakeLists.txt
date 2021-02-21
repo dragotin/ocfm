@@ -57,4 +57,5 @@ add_subdirectory(elokab-fa)
 
 install(FILES usr/share/applications/elokab-fm.desktop DESTINATION ${XDG_APPS_INSTALL_DIR} RENAME org.owncloud.elokab-fm.desktop)
 INSTALL(DIRECTORY usr/share/elokab/elokab-fm/service DESTINATION ${DATA_INSTALL_DIR}/elokab-fm)
+install(FILES usr/share/elokab/elokab-fm/system-file-manager.svg DESTINATION ${DATA_INSTALL_DIR}/elokab-fm)
 # INSTALL(FILES etc/xdg/elokab/Archiver.conf DESTINATION ${SYSCONFDIR}/elokab/)
