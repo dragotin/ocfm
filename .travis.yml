@@ -31,7 +31,9 @@ branches:
 
 deploy:
   provider: releases
-  api_key: '$GITHUB_API_KEY'
+  api_key: $GH_TOKEN
+  sfile_glob: true
   file: Elokab_Fm-*.AppImage
   skip_cleanup: true
+  draft: true
 
