@@ -31,7 +31,7 @@ branches:
 
 deploy:
   provider: releases
-  api_key: $GH_TOKEN
+  api_key: $GTIHUB_TOKEN
   sfile_glob: true
   file: Elokab_Fm-*.AppImage
   skip_cleanup: true
