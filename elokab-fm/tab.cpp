@@ -18,6 +18,8 @@
  ***************************************************************************/
 #include "defines.h"
 #include "tab.h"
+#include "owncloudsocket.h"
+
 //#include "filesactions.h"
 //#include <EMimIcon>
 #include "messages.h"
@@ -64,7 +66,6 @@ Tab::Tab(Settings *setting, Actions *actions, const ownCloudCfg& ownCloudCfg, QW
 
     mimData=new QMimeData;
 
-    // connect(this,SIGNAL(urlChanged(QString)),this,SLOT(directoryChanged(QString)));
     //
     connect(this,SIGNAL(urlChanged(QString)),    this,SLOT(setCurTabText(QString)));
     connect(this,SIGNAL(urlChanged(QString)),    mActions,SLOT(setUrl(QString))) ;
@@ -97,8 +98,8 @@ Tab::Tab(Settings *setting, Actions *actions, const ownCloudCfg& ownCloudCfg, QW
     connect(mSettings,SIGNAL(sortingChanged()),           this,SLOT(setSorting()));
     //
     connect(myModel,SIGNAL(dragDropFiles(bool,QString,QStringList)),this,SLOT(dragDropFiles(bool,QString,QStringList)));
-   //connect(myModel,SIGNAL(directoryLoaded(QString)),this,SLOT(thumbnails(QString)));
-    // connect(myModel,SIGNAL(rootPathChanged(QString)),this,SLOT(createThumbnail(QString)));
+
+    connect(myModel, &MyFileSystemModel::rowsInserted, this, &Tab::slotItemsInserted);
 
     setHiddenFile(mSettings->showHidden());
     setShowThumbnails(mSettings->showThumbnails());
@@ -173,10 +174,59 @@ void Tab::addNewTab( const QString &url)
     connect(pageWidget,SIGNAL(selectedFoldersFiles(QString)),this,SIGNAL(  selectedFoldersFiles(QString)));
     emit tabAdded(mUrl);
 
+    connect(pageWidget, &PageWidget::openFileItem, this, &Tab::slotOpenFileItem);
+
     Messages::debugMe(0,__LINE__,"Tab",__FUNCTION__,"End");
 }
 
+void Tab::slotItemsInserted(const QModelIndex &parent, int first, int last)
+{
+    Q_UNUSED(last)
+    QModelIndex indx = myModel->index(first, 0, parent);
+    if (!indx.isValid()) return;
 
+    const QString name = myModel->filePath(indx);
+    qDebug() << "File was added:" << name;
+
+    int inListIdx = _waitToOpenList.indexOf(name);
+    if (inListIdx > -1) {
+        slotOpenFileItem(indx);
+        _waitToOpenList.removeAt(inListIdx);
+    }
+
+}
+
+void Tab::slotOpenFileItem(QModelIndex index)
+{
+    if (!index.isValid()) return;
+
+    bool isDehydrated = (index.data(D_OWNCLOUD).toBool()) &&
+            index.data(D_OWNCLOUD_DEHYDRATED).toBool();
+
+    const QString filePath = myModel->filePath(index);
+    if (isDehydrated) {
+        Q_ASSERT(filePath.endsWith(ownCloudSocket::DehydSuffix));
+        // cut off .owncloud
+        const QString clearName = filePath.left(filePath.length()- ownCloudSocket::DehydSuffix.length());
+
+        const QStringList li {filePath};
+        if (!_waitToOpenList.contains(clearName) ) {
+            _waitToOpenList.append(clearName);
+        }
+        ownCloudSocket::instance()->slotOwnCloudHydrate(li);
+        return;
+    }
+
+    const QString mim=index.data(D_MMIM).toString();
+    qDebug() << mim << filePath;
+    // QString mim=EMimIcon::mimeTyppe(myModel->fileInfo(index));
+    if (EMimIcon::launchApp(filePath, mim)==false) {
+        PageWidget *pw = qobject_cast<PageWidget*>(sender());
+        if (pw) {
+            pw->showOpenwithDlg(filePath);
+        }
+    }
+}
 
 /*****************************************************************************
  *

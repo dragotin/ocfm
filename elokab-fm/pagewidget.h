@@ -102,6 +102,8 @@ signals:
     //! رسالة بتوفر التنقل للخلف
     void historyBackAvailable(bool);
 
+    void openFileItem(QModelIndex indx);
+
 public slots:
 
     //!

@@ -337,29 +337,17 @@ void PageWidget::customContextMenu(QPoint)
  **************************************************************************************/
 void PageWidget::slotItemActivated(QModelIndex index)
 {
-
-
     if(selectedIndex().count()>0)
     {
-
-        if(myModel->isDir( listSelectionModel->currentIndex()))
-        {
+        if(myModel->isDir( listSelectionModel->currentIndex())) {
             if(m_dirPath==D_TRASH)
                 return;
 
             setUrl(myModel->filePath(index));
-        }else{
-           QString mim=index.data(D_MMIM).toString();
-           qDebug()<<mim<<myModel->filePath(index);
-           // QString mim=EMimIcon::mimeTyppe(myModel->fileInfo(index));
-            if (EMimIcon::launchApp(myModel->filePath(index),mim)==false)
-                showOpenwithDlg(myModel->filePath(index));
-
+        } else {
+            emit openFileItem(index);
         }
-
     }
-
-
 }
 
 /**************************************************************************************
@@ -1036,8 +1024,6 @@ void PageWidget::showOpenwithDlg(const QString &fileName)
     }
     openWithDlg=nullptr;
     delete openWithDlg;
-
-
 }
 
 int PageWidget::focusedWidget()

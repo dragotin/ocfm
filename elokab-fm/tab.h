@@ -40,154 +40,163 @@
  */
 class Tab : public QTabWidget
 {
-          Q_OBJECT
-     public:
+    Q_OBJECT
+public:
 
-          /**
+    /**
           * @brief Tab
           *
           * @param actions
           * @param parent
           */
-          explicit Tab(Settings *setting,
-                       Actions *actions,
-                       const ownCloudCfg& ownCloudCfg,
-                       QWidget *parent = nullptr);
-          ~Tab();
+    explicit Tab(Settings *setting,
+                 Actions *actions,
+                 const ownCloudCfg& ownCloudCfg,
+                 QWidget *parent = nullptr);
+    ~Tab();
 
-     signals:
-  void  largeDirectoryChanged(bool arg);
-           //!
-          void   urlChanged(const QString &url);
-void  tabAdded(const QString &url);
-           //!
-          void selectedFoldersFiles(QString);
+signals:
+    void  largeDirectoryChanged(bool arg);
+    //!
+    void   urlChanged(const QString &url);
+    void  tabAdded(const QString &url);
+    //!
+    void selectedFoldersFiles(QString);
 
-     public slots:
+public slots:
 
-          void updateIcons();
+    void updateIcons();
 
-          //!  غلق كل الالسنة
-          void closeAll();
+    //!  غلق كل الالسنة
+    void closeAll();
 
-          //! اضافة لسان جديد
-          void addNewTab( const QString &url=QDir::homePath());
+    //! اضافة لسان جديد
+    void addNewTab( const QString &url=QDir::homePath());
 
-          //! تغيير المسار
-          void setUrl(const QString &url=QDir::homePath());
+    //! تغيير المسار
+    void setUrl(const QString &url=QDir::homePath());
 
-          //! مرشح الفلترة
-          void setModelFiltrer(const QString& nf);
-//!
+    //! مرشح الفلترة
+    void setModelFiltrer(const QString& nf);
+    //!
+
+    // called from pagewidget if an item should be opened
+    void slotOpenFileItem(QModelIndex index);
+
+private slots:
+
+    //!
+    // void setLargeDirectory(const QString &dir);
+
+    //! عرض المصغرات او اخفائها
+    void setShowThumbnails(bool arg);
 
 
-     private slots:
+    //! غلق اللسان الحالي
+    void closeCurentTab();
 
-          //!
-         // void setLargeDirectory(const QString &dir);
+    //!
+    void oncloseRequested(int index);
 
-          //! عرض المصغرات او اخفائها
-          void setShowThumbnails(bool arg);
+    //!
+    void currentTabChanged(int index);
 
+    //!
+    void setCurTabText(const QString &title);
 
-          //! غلق اللسان الحالي
-          void closeCurentTab();
+    //!
+    void goForward();
 
-          //!
-          void oncloseRequested(int index);
+    //!
+    void goBack();
 
-          //!
-          void currentTabChanged(int index);
+    //!
+    void goUp();
 
-          //!
-          void setCurTabText(const QString &title);
+    //!
+    void goHome();
 
-          //!
-          void goForward();
+    //!
+    void goTrash();
 
-          //!
-          void goBack();
+    //!
+    void goSearch();
 
-          //!
-          void goUp();
+    //!
+    void  setViewMode(int);
 
-          //!
-          void goHome();
+    //!
+    void setHiddenFile(bool visible);
 
-          //!
-          void goTrash();
+    //!
+    void setSorting();
 
-          //!
-          void goSearch();
+    //!
+    void renameFiles();
 
-          //!
-          void  setViewMode(int);
+    //!
+    void deleteFiles();
 
-          //!
-          void setHiddenFile(bool visible);
+    //!
+    void pastFiles();
 
-          //!
-          void setSorting();
+    //!
+    void copyFiles();
 
-          //!
-          void renameFiles();
+    //!
+    void cutFiles();
 
-          //!
-          void deleteFiles();
+    //!
+    void moveFilesToTrash();
 
-          //!
-          void pastFiles();
+    //!
+    void selectAll();
 
-          //!
-          void copyFiles();
+    //!
+    void slotShowOpenwithDlg();
 
-          //!
-          void cutFiles();
+    //!
+    void slotShowProperties();
 
-          //!
-          void moveFilesToTrash();
+    void dragDropFiles(bool copy,QString path, QStringList list);
 
-          //!
-          void selectAll();
+    void slotItemsInserted(const QModelIndex &parent, int first, int last);
 
-          //!
-          void slotShowOpenwithDlg();
+private:
 
-          //!
-          void slotShowProperties();
+    /*!< cmment */
+    Settings *mSettings;
 
-          void dragDropFiles(bool copy,QString path, QStringList list);
-     private:
+    /*!< cmment */
+    //
+    /*!< cmment */
+    Actions *mActions;
 
-          /*!< cmment */
-          Settings *mSettings;
+    /*!< cmment */
+    bool mCute;
 
-          /*!< cmment */
-      //
-          /*!< cmment */
-          Actions *mActions;
+    const ownCloudCfg& mOwnCloudCfg;
 
-          /*!< cmment */
-          bool mCute;
+    /*!< cmment */
+    PageWidget *pageWidget;
 
-          const ownCloudCfg& mOwnCloudCfg;
+    /*!< cmment */
+    MyFileSystemModel *myModel;
+    //    QFileSystemModel *myModel;
+    //!
+    //!
+    QMimeData *mimData;
 
-          /*!< cmment */
-          PageWidget *pageWidget;
+    //!
+    QStringList listDirectory;
 
-          /*!< cmment */
-         MyFileSystemModel *myModel;
-        //    QFileSystemModel *myModel;
-          //!
-          //!
-          QMimeData *mimData;
+    bool mSowTumbnails;
 
-          //!
-          QStringList listDirectory;
-
-          bool mSowTumbnails;
-
-         // QFileSystemWatcher *mFileSystemWatcher;
+    /**
+     * @brief _waitToOpenList list to store files to open that first have to
+     * be dehydrated. Once they arrive, they get opened.
+     */
+    QStringList _waitToOpenList;
 };
 
 #endif // TAB_H
