@@ -29,3 +29,10 @@ branches:
     - # Do not build tags that we create when we upload to GitHub Releases
     - /^(?i:continuous)/
 
+deploy:
+  provider: releases
+  api_key: '$GITHUB_API_KEY'
+  file: Elokab_Fm-*.AppImage
+  skip_cleanup: true
+  on:
+    tags: true
