@@ -34,5 +34,4 @@ deploy:
   api_key: '$GITHUB_API_KEY'
   file: Elokab_Fm-*.AppImage
   skip_cleanup: true
-  on:
-    tags: true
+
