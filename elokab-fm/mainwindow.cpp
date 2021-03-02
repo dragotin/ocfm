@@ -433,32 +433,32 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__,"End");
  **************************************************************************************/
 void MainWindow::calculatFiles()
 {
-Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
+    Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
 
-     QDir::Filters filter;
-     if(mSettings->showHidden())
-          filter=QDir::AllEntries|  QDir::NoDotAndDotDot|QDir::Hidden ;
-     else
-          filter=QDir::AllEntries|  QDir::NoDotAndDotDot ;
+    QDir::Filters filter;
+    if(mSettings->showHidden())
+        filter=QDir::AllEntries| QDir::NoDotAndDotDot|QDir::Hidden ;
+    else
+        filter=QDir::AllEntries| QDir::NoDotAndDotDot ;
 
-     mFileInfo->setFileName("file://"+m_mainUrl, false, false);
-     QDir dir(m_mainUrl);
-     int folder=0,file=0;
-     foreach (QString subfile, dir.entryList(filter))
-     {
-          QFileInfo fi(m_mainUrl+"/"+subfile);
 
-          if(fi.isDir())
-               folder++;
+    mFileInfo->setFileName("file://"+m_mainUrl, _ownCloudCfg.isOwnCloudPath(m_mainUrl), false);
+    QDir dir(m_mainUrl);
+    int folder=0,file=0;
+    for ( const QString& subfile : dir.entryList(filter)) {
+        const QFileInfo fi(m_mainUrl+"/"+subfile);
 
-          else
-               file++;
+        if(fi.isDir())
+            folder++;
 
-     }
+        else
+            file++;
 
-     ui->statusBar->showMessage(QString::number(folder)+tr(" Folders ")+QString::number(file)+ tr(" Files"));
+    }
 
-Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__,"End");
+    ui->statusBar->showMessage(QString::number(folder)+tr(" Folders ")+QString::number(file)+ tr(" Files"));
+
+    Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__,"End");
 }
 
 /**************************************************************************************
