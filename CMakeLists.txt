@@ -1,4 +1,4 @@
-project(elokab-filemanager)
+project(oCfm)
 
 cmake_minimum_required(VERSION 2.8.12)
 cmake_policy(SET CMP0063 NEW)
@@ -50,7 +50,7 @@ add_definitions(${QT_DEFINITIONS} )
 
 add_subdirectory(common)
 add_subdirectory(library)
-add_subdirectory(elokab-fm)
+add_subdirectory(src)
 add_subdirectory(elokab-fa)
 
 # ===== Installs
