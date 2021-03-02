@@ -36,6 +36,7 @@
 //#ifdef DEBUG_APP
 #include <QDebug>
 #include <QMessageAuthenticationCode>
+#include <qdesktopservices.h>
 //#endif
 
 
@@ -220,12 +221,14 @@ void Tab::slotOpenFileItem(QModelIndex index)
     const QString mim=index.data(D_MMIM).toString();
     qDebug() << mim << filePath;
     // QString mim=EMimIcon::mimeTyppe(myModel->fileInfo(index));
-    if (EMimIcon::launchApp(filePath, mim)==false) {
-        PageWidget *pw = qobject_cast<PageWidget*>(sender());
-        if (pw) {
-            pw->showOpenwithDlg(filePath);
-        }
-    }
+    QDesktopServices::openUrl(QUrl::fromLocalFile(filePath));
+
+//    if (EMimIcon::launchApp(filePath, mim)==false) {
+//        PageWidget *pw = qobject_cast<PageWidget*>(sender());
+//        if (pw) {
+//            pw->showOpenwithDlg(filePath);
+//        }
+//    }
 }
 
 /*****************************************************************************
