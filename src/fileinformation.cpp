@@ -111,6 +111,9 @@ void FileInformation::setFileName(const QString &file, bool isOwnClouded, bool i
         QFileInfo fi(mFile);
 
         QString txt=fi.fileName();
+        if(isSuffixVfs) {
+          txt.truncate(txt.length()-ownCloudSocket::DehydSuffix.length());
+        }
         int pointSize=this->font().pointSize();
         int lent=txt.length();
 
