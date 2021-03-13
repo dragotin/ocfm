@@ -369,6 +369,13 @@ void FileInformation::setOwnCloudInfo(const QString& clientVer, const QString& p
         const QString t = QString(tr("Client-Version: %1\nProtocol-Version: %2"))
                 .arg(clientVer).arg(protoVer);
         ui->labelOwnCloud->setText(t);
+
+        // set the minimum width of the file info to not scrumble the ownCloud label
+        int w = ui->labelOwnCloud->width();
+        w += ui->labelOwnCloudImage->width();
+        w += 24;
+
+        this->setMinimumWidth(w);
     }
 }
 
