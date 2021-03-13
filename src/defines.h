@@ -11,9 +11,10 @@
 #define D_MMIM          Qt::UserRole
 #define D_MARGINS       3
 
-#define D_APPNAME       "elokab-fm"
-#define D_APPVERSION    "0.2+ownCloud patches"
-#define D_APPORGNAME    "elokab"
+#define D_APPNAME       QStringLiteral("oCfm")
+#define D_APPNAME_GUI   QStringLiteral("ownCloud File Manager")
+#define D_APPVERSION    QStringLiteral("0.5")
+#define D_APPORGNAME    QStringLiteral("ownCloud")
 
 #define D_TRASH         ":/trash"
 #define D_SEARCH        ":/search"

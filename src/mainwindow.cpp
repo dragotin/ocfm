@@ -375,7 +375,7 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__,url);
      if(dir.path()==QDir::homePath())
           name=tr("Home");
 
-     setWindowTitle(tr("ElokabFm")+"-"+name);
+     setWindowTitle( QString( "%1 - %2").arg(D_APPNAME_GUI).arg(name));
      QModelIndex index= myModel->index(url);
      ui->treeView->setCurrentIndex((index));
      calculatFiles();
@@ -662,8 +662,6 @@ void MainWindow::showAboutThis()
 
     WidgetAbout *wid=new WidgetAbout(dlg);
     wid->setPixmap(EIcon::fromTheme("system-file-manager",("folder")).pixmap(64));
-    wid->setDescription(tr("File Manager Based on Qt"));
-    wid->setApplicationText(tr("Elokab File manager"));
     QVBoxLayout  *verticalLayout = new QVBoxLayout(dlg);
     QDialogButtonBox *buttonBox = new QDialogButtonBox(dlg);
     buttonBox->setOrientation(Qt::Horizontal);

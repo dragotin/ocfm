@@ -1,6 +1,6 @@
 include_directories(${QT_INCLUDES} ../library/include ../common)
 
-set(elokab_fm_SRCS
+set(ocfm_SRCS
     actions.cpp
     actions.h
     defines.h
@@ -64,9 +64,9 @@ set(elokab_fm_SRCS
 )
 
 
-add_executable(elokab-fm ${fm_QM} ${elokab_fm_SRCS})
+add_executable(ocfm  ${ocfm_SRCS})
 
-set_target_properties(elokab-fm PROPERTIES OUTPUT_NAME elokab-fm)
+set_target_properties(ocfm PROPERTIES OUTPUT_NAME ocfm)
 
 set(ELOKAB_FM_LINK_LIBS
     Qt5::Core
@@ -79,9 +79,9 @@ set(ELOKAB_FM_LINK_LIBS
     elocommonlib
 )
 
-target_link_libraries(elokab-fm
+target_link_libraries(ocfm
 PUBLIC
     ${ELOKAB_FM_LINK_LIBS}
 )
 
-install(TARGETS elokab-fm ${INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS ocfm ${INSTALL_TARGETS_DEFAULT_ARGS})
