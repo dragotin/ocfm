@@ -16,14 +16,19 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+/*
+ * Copyright (C) 2021 Klaas Freitag <freitag@owncloud.com>                 *
+ */
 
-#include  "mainwindow.h"
-#include  "ui_mainwindow.h"
+
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 //#include <EMimIcon>
-#include  "dialogactions.h"
-#include  "messages.h"
-#include  "about/widgetabout.h"
+#include "dialogactions.h"
+#include "messages.h"
+#include "about/widgetabout.h"
 #include "owncloudsocket.h"
+#include "defines.h"
 
 #include  <QDebug>
 #include  <QDialogButtonBox>
@@ -164,11 +169,11 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
 
 
 
-    mFileInfo=new FileInformation(this);
-    ui->hLayoutCenter->addWidget(mFileInfo);
+    mFileInfo=new FileInformation( ui->splitter);
+   // ui->hLayoutCenter->addWidget(mFileInfo);
 
     pathWidget=new PathWidget(this);
-    //     pathWidget->setUrl(path);
+    // pathWidget->setUrl(path);
 
 
     mActions->pathWidgetAction()->setDefaultWidget(pathWidget);
@@ -196,7 +201,7 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
     connect(ui->treeView,SIGNAL(activated(QModelIndex)),this,SLOT(setUrl(QModelIndex)));
     connect(ui->treeView,SIGNAL(clicked(QModelIndex)),this,SLOT(setUrl(QModelIndex)));
     connect(mTab,SIGNAL(urlChanged(QString)),this,SLOT(setUrl(QString)));
-   connect(mTab,SIGNAL(tabAdded(QString)),this,SLOT(setUrl(QString)));
+    connect(mTab,SIGNAL(tabAdded(QString)),this,SLOT(setUrl(QString)));
     connect (this,SIGNAL(closeAll()),mTab,SLOT(closeAll()));
     connect(mTab,SIGNAL(  selectedFoldersFiles(QString)),this,SLOT(setSelectedFoldersFiles(QString)));
     connect(ui->mainToolBar,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(toolCustomContextMenu(QPoint)));
@@ -213,9 +218,7 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
     connect(mSettings,SIGNAL(singleclickChanged()),this,SLOT(changeSingleClick()));
     connect(mActions,SIGNAL(sendShowSettings()),this,SLOT(showSettings()));
 
-
-
-    ui->splitter->setSizes(QList<int>()<<1<<2);
+    ui->splitter->setSizes(QList<int>()<<1<<2<<1);
     QSettings settings(QApplication::organizationName(),QApplication::applicationName());
     settings.beginGroup("Window");
     restoreGeometry(settings.value("geometry").toByteArray());
