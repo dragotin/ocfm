@@ -51,6 +51,7 @@ public:
 public slots:
     void slotOwnCloudHydrate(const QStringList& list);
     void slotOwnCloudDehydrate(const QStringList& list);
+    void tryConnect();
 
 signals:
     void commandRecieved(const QByteArray &cmd);
@@ -66,7 +67,6 @@ private slots:
 
 private:
     ownCloudSocket();
-    void tryConnect();
 
     void ownCloudSocketFileListCall(const QStringList& fileList, const QByteArray& cmd);
 

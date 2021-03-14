@@ -36,6 +36,15 @@ namespace {
             tnFilePath.append("xx-large/");
         else if( size == Thumbnails::Size::Fail)
             tnFilePath.append("fail/");
+
+        QDir fiDir(tnFilePath);
+        if (!fiDir.exists()) {
+            // try to create it.
+            if ( !fiDir.mkpath(tnFilePath)) {
+                qDebug() << "FATAL: Thumbnail path" << tnFilePath << " does not exist and can not be created!";
+            }
+        }
+
         tnFilePath.append(md5EncodedName(file));
         tnFilePath.append(".png");
 
@@ -92,6 +101,7 @@ namespace {
 }
 
 //***********************  Thumbnails ***********************
+Thumbnails *Thumbnails::_instance = nullptr;
 
 Thumbnails::Thumbnails(QObject *parent) : QObject(parent)
   , mCacheType{CacheType::Personal}
@@ -109,10 +119,18 @@ Thumbnails::Thumbnails(QObject *parent) : QObject(parent)
 
 Thumbnails::~Thumbnails()
 {
-
     delete mThread;
-
 }
+
+
+Thumbnails *Thumbnails::instance()
+{
+    if (!_instance) {
+        _instance = new Thumbnails;
+    }
+    return _instance;
+}
+
 //_____________________________________________________________
 void Thumbnails::directoryChanged(const QString &path)
 {

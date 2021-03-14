@@ -169,7 +169,7 @@ Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
 
 
 
-    mFileInfo=new FileInformation( ui->splitter);
+    mFileInfo=new FileInformation(ui->splitter);
    // ui->hLayoutCenter->addWidget(mFileInfo);
 
     pathWidget=new PathWidget(this);

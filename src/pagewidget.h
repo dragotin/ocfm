@@ -22,7 +22,6 @@
 
 #include <QWidget>
 #include"actions.h"
-#include"thumbnails.h"
 //#include "trashview.h"
 #include "trash.h"
 #include "searchview.h"
@@ -206,7 +205,6 @@ private slots:
 
 private:
 
-    Thumbnails *mThumbnails;
     //!
     Settings *mSettings;
 

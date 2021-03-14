@@ -35,7 +35,7 @@ class ItemDelegate : public QStyledItemDelegate
 public:
 
     //!
-    explicit ItemDelegate(bool modern, Thumbnails* thumbnails);
+    explicit ItemDelegate(bool modern);
 
     //!
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
@@ -100,8 +100,6 @@ private:
     bool  mVideoThumbnail;
     bool  isTreeview;
     bool  isModernMode;
-
-    QPointer<Thumbnails> _thumbFactory;
 
 };
 

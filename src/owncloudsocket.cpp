@@ -21,6 +21,7 @@
 #include <qcoreevent.h>
 #include <QStandardPaths>
 #include <QFile>
+#include <QTimer>
 #include "owncloudsocket.h"
 
 #define APPLICATION_SHORTNAME "ownCloud"
@@ -39,7 +40,7 @@ ownCloudSocket::ownCloudSocket()
     connect(&_socket, &QLocalSocket::disconnected, this, &ownCloudSocket::slotDisconnected);
     connect(&_socket, &QLocalSocket::readyRead, this, &ownCloudSocket::slotReadyRead);
     _connectTimer.start(45 * 1000, Qt::VeryCoarseTimer, this);
-    tryConnect();
+    QTimer::singleShot(10, this, &ownCloudSocket::tryConnect);
 }
 
 void ownCloudSocket::timerEvent(QTimerEvent *e)

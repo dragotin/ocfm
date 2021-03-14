@@ -20,6 +20,7 @@
 #include "fileinformation.h"
 #include "ui_fileinformation.h"
 #include "owncloudsocket.h"
+#include "thumbnails.h"
 
 #include <EMimIcon>
 #include "messages.h"
@@ -114,20 +115,6 @@ void FileInformation::setFileName(const QString &file, bool isOwnClouded, bool i
         if(isSuffixVfs) {
           txt.truncate(txt.length()-ownCloudSocket::DehydSuffix.length());
         }
-        int pointSize=this->font().pointSize();
-        int lent=txt.length();
-
-        int width=200/pointSize;
-        if(lent>width){
-            int pos=0;
-            while (pos<lent) {
-                int index=txt.indexOf(" ",pos);
-                pos=width+pos;
-                if(index==-1||(index-pos)>width)
-                    txt.insert(pos,"\n")  ;
-            }
-        }
-
         ui->labelTitle->setText(txt);
         //         if(fi.isDir())
         //             setDirInformation(fi);
@@ -178,49 +165,29 @@ void FileInformation::setFileName(const QString &file, bool isOwnClouded, bool i
  **************************************************************************************/
 void FileInformation::setFileInformation(const QFileInfo &fi, bool isOwnclouded)
 {
-    QString mim=EMimIcon::mimeType(fi.absoluteFilePath(), fi.isDir(), false);
+    const int DehydrateLength = ownCloudSocket::DehydSuffix.length();
+
+    const QString mim=EMimIcon::mimeType(fi.absoluteFilePath(), fi.isDir(), false);
     bool hasImage=false;
     bool hasAudio=false;
+
+    QFileInfo realFileInfo {fi};
+    if (isOwnclouded && fi.absoluteFilePath().endsWith(ownCloudSocket::DehydSuffix)) {
+        QString shortFileName {fi.absoluteFilePath()};
+        shortFileName.chop(DehydrateLength);
+        realFileInfo.setFile(shortFileName);
+    }
+
+    QIcon pixIcon = Thumbnails::instance()->getThumbnail(realFileInfo, Thumbnails::Size::Normal, isOwnclouded);
+    int scal = 128;
+
     QPixmap pix;
-    int scal=128;
-
-    if(mim.startsWith("video") || mim.endsWith("pdf"))
-    {
-
-        QMessageAuthenticationCode code(QCryptographicHash::Md5);
-        code.addData(mFile.toUtf8());
-        QString md5Name=code.result().toHex();
-        QString fileThumbnail=Edir::personalThumbnailsCacheDir()+"/"+md5Name;
-
-        if(QFile::exists(fileThumbnail)){
-            if(pix.load(fileThumbnail))
-            pix=(QPixmap(fileThumbnail));
-        }
-
-    }else if(mim.startsWith("image")) {
-
-        if(pix.load(mFile)){
-            hasImage=true;
-            int max=qMax(pix.width(),pix.height());
-            if(max>=200) scal=200;
-            else if(max<=200) scal=128;
-            else scal=max;
-
-        }
-
-    }else if(canReadAudio && mim.startsWith("audio")){
-        hasAudio=true;
-    }
-
-    // Hack: show the owncloud folder icon for directories if exists.
-    if (pix.isNull() && fi.isDir() && isOwnclouded && QIcon::hasThemeIcon("folder-owncloud")) {
-        pix = QIcon::fromTheme("folder-owncloud").pixmap(128);
-    }
-
+    if (!pixIcon.isNull())
+        pix = pixIcon.pixmap(QSize(scal, scal));
     if(pix.isNull())
-        pix=EMimIcon::icon(fi,false).pixmap(128).scaled(128,128);
+        pix=EMimIcon::icon(fi,false).pixmap(scal).scaled(scal, scal);
     //QIcon icon=EMimIcon::icon(fi,false);
-    ui->labelPixmap->setPixmap(QPixmap(pix.scaled(QSize(scal,scal),Qt::KeepAspectRatio,Qt::SmoothTransformation)));
+    ui->labelPixmap->setPixmap(pix); // QPixmap(pix.scaled(QSize(scal,scal),Qt::KeepAspectRatio,Qt::SmoothTransformation)));
 
     QString infoStr;
     if(fi.isSymLink()) infoStr+=tr("Point To: %1 \n"). arg(fi.symLinkTarget());
@@ -376,7 +343,7 @@ void FileInformation::setOwnCloudInfo(const QString& clientVer, const QString& p
         // set the minimum width of the file info to not scrumble the ownCloud label
         int w = ui->labelOwnCloud->width();
         w += ui->labelOwnCloudImage->width();
-        w += 24;
+        w += 14;
 
         this->setMinimumWidth(w);
     }

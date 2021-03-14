@@ -39,10 +39,9 @@
 #include <QFileSystemModel>
 
 //____________________________________________________________________
-ItemDelegate::ItemDelegate(bool modern, Thumbnails *thumbnails)
+ItemDelegate::ItemDelegate(bool modern)
     :isTreeview(false),
-      isModernMode(modern),
-      _thumbFactory(thumbnails)
+      isModernMode(modern)
 {
 
     mSymlinkIcon=EIcon::fromTheme("emblem-symbolic-link");
@@ -164,7 +163,7 @@ QIcon ItemDelegate::decoration(const QModelIndex &index)const
         return mIconCache->value(filePath);
 
     QIcon retIcon;
-    if(mThumbnail && _thumbFactory)
+    if(mThumbnail)
     {
         bool isDehydrated = index.data(D_OWNCLOUD_DEHYDRATED).toBool();
         Thumbnails::Size size = Thumbnails::Size::Normal;
@@ -172,19 +171,19 @@ QIcon ItemDelegate::decoration(const QModelIndex &index)const
         //--------------------------------------- IMAGES TYPE
         if( mim.startsWith(D_IMAGE_TYPE) )
         {
-            retIcon = _thumbFactory->getThumbnail(info, size, isDehydrated);
+            retIcon = Thumbnails::instance()->getThumbnail(info, size, isDehydrated);
         }// image
 
         //--------------------------------------- PDF TYPE
         else if( mPdfThumbnail && mim.endsWith(D_PDF_TYPE) )
         {
-            retIcon = _thumbFactory->getThumbnail(info, size, isDehydrated);
+            retIcon = Thumbnails::instance()->getThumbnail(info, size, isDehydrated);
         }// pdf
 
         //--------------------------------------- VIDEO TYPE
         else if(mVideoThumbnail && mim.startsWith(D_VIDEO_TYPE) )
         {
-            retIcon = _thumbFactory->getThumbnail(info, size, isDehydrated);
+            retIcon = Thumbnails::instance()->getThumbnail(info, size, isDehydrated);
         }// video
 
         if (!retIcon.isNull()) {
@@ -226,11 +225,11 @@ void ItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, 
     if(option.decorationPosition == QStyleOptionViewItem::Top ||
             option.decorationPosition == QStyleOptionViewItem::Bottom) {
 
-       paintIconView(painter,option,index);
+       paintIconView(painter, option, index);
     }
     //! منظر تفصيلي (Detail View)-----------------------------------------------
     else{
-        paintDetailView(painter,option,index);
+        paintDetailView(painter, option, index);
     }
 
 }

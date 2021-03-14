@@ -32,6 +32,8 @@ public:
 
     QIcon getThumbnail(const QFileInfo& fi, Size size, bool dehydrated);
 
+    static Thumbnails *instance();
+
 signals:
     void updateThumbnail(const QString &path);
 
@@ -48,7 +50,9 @@ private slots:
 private:
     Thread   *mThread;
 
-     QStringList mListExclude;
+    static Thumbnails* _instance;
+
+    QStringList mListExclude;
 
     QString   mCurentPath;
     QString   mCurType;

@@ -67,9 +67,7 @@ PageWidget::PageWidget(MyFileSystemModel *model,
     vLayoutList->setSpacing(6);
     vLayoutList->setContentsMargins(0,0,0,0);
 
-    mThumbnails=new Thumbnails;
-
-    mItemDelegate=new ItemDelegate(!mSettings->isClassicIcons(), mThumbnails);
+    mItemDelegate=new ItemDelegate(!mSettings->isClassicIcons());
 
     listView = new MyListView(myModel,mActions,pageList);
     listView->setItemDelegate(mItemDelegate);
@@ -102,9 +100,7 @@ PageWidget::PageWidget(MyFileSystemModel *model,
     listView->setContextMenuPolicy  (Qt::CustomContextMenu);
     searchView->setContextMenuPolicy(Qt::CustomContextMenu);
 
-
-
-    connect(this,SIGNAL(urlChanged(QString)),mThumbnails,SLOT(directoryChanged(QString)));
+    // connect(this,SIGNAL(urlChanged(QString)),mThumbnails,SLOT(directoryChanged(QString)));
     connect(listSelectionModel,SIGNAL(selectionChanged(QItemSelection,QItemSelection)),this,SLOT(selectionHasChanged(QItemSelection,QItemSelection)));
 
     connect(treeView,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(customContextMenu(QPoint)));
@@ -114,8 +110,8 @@ PageWidget::PageWidget(MyFileSystemModel *model,
     connect(listView,SIGNAL(activated(QModelIndex)),this,SLOT(slotItemActivated(QModelIndex)));
     connect(listView,SIGNAL(fileEntered(QString)),this,SIGNAL(selectedFoldersFiles(QString)));
 
-    connect(mItemDelegate,SIGNAL(requireThumb(QFileInfo,QString)),mThumbnails,SLOT(addFileName(QFileInfo,QString)));
-    connect(mThumbnails,SIGNAL(updateThumbnail(QString)),this,SLOT(iconThumbUpdate(QString)));
+    connect(mItemDelegate, &ItemDelegate::requireThumb, Thumbnails::instance(), &Thumbnails::addFileName);
+    connect(Thumbnails::instance(), &Thumbnails::updateThumbnail, this, &PageWidget::iconThumbUpdate);
 
     connect(stackedWidget,SIGNAL(currentChanged(int)),this,SLOT(viewChangged(int)));
     connect(searchView,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(customContextMenu(QPoint)));
@@ -170,7 +166,6 @@ PageWidget::~PageWidget()
     // delete searchView;
     delete listView;
     delete treeView;
-    delete mThumbnails;
    // delete trashView;
 }
 void PageWidget::closeAll()
