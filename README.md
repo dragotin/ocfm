@@ -1,16 +1,14 @@
-# elokab-files-manager
+# ownCloud File Manager
 
-A lightweight  file manager for Linux desktops built in Qt.
+A lightweight file manager for Linux desktops with ownCloud capabilities.
 
 ## An Unintended Fork
 
-Attention, this is a kind of fork from the [original project elokab-fm](https://github.com/zakariakov/elokab-files-manager).
+This is a kind of fork from the [original project elokab-fm](https://github.com/zakariakov/elokab-files-manager).
 
-It was tried to propose patches back via [pullrequest](https://github.com/zakariakov/elokab-files-manager/pull/1)
-but that was not answered so far.
+It was tried to propose patches back via [pullrequest](https://github.com/zakariakov/elokab-files-manager/pull/1) but reach out was never answered.
 
-I keep going to improve things here for the moment, especially with improvements for ownClouds Virtual Filesystem on Linux.
-
+We decided to copy the project and continue to improve it. Special attention is given to make it work with ownCloud, utilizing ownClouds virtual file system on the Linux desktop, and other ownCloud specific things.
 
 # مدير ملفات العقاب
 
@@ -24,16 +22,14 @@ New look in compact mode
 
 Image and pdf and video thumbnails
 
-
 ![Screenshots](https://github.com/zakariakov/screenshots/blob/master/elokabFm-thumbnails.png)
 
 
+# Build and Install
 
-Depends :Qt5-svg , file ,udisks2
+## Depends :Qt5 libraries
 
 Optional dependencies: imagemagick , ffmpeg
-
-# Install
 
 Other than the original project, this unintended fork uses cmake to build.
 
