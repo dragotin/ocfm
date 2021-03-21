@@ -50,7 +50,7 @@ QString Edir::dataDir()
     QDir appDir(QApplication::applicationDirPath());
     QString dirPath;
     appDir.cdUp();
-    dirPath=  appDir.absolutePath()+"/share/elokab";
+    dirPath=  appDir.absolutePath()+"/share/oCfm";
     return dirPath;
 }
 
