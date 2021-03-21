@@ -1,0 +1,15 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=ownCloud File Manager
+
+
+Exec=ocfm %u
+Icon=system-file-manager
+Type=Application
+
+Categories=Qt;System;FileTools;FileManager;
+GenericName=ownCloud File Manager
+GenericName[de]=ownCloud Dateimanager
+Terminal=false
+MimeType=inode/directory;
+
