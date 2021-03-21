@@ -65,24 +65,6 @@ MainWindow::MainWindow( QString pathUrl,QWidget *parent) :
 
     if(pathUrl.isEmpty())
        pathUrl=QDir::homePath();
-//    if(args.count()>1)
-//    {
-
-//        QUrl url(args.at(1));
-
-//      //  pathUrl=url.toLocalFile();
-
-//         pathUrl=url.toString();
-//         if(pathUrl.startsWith("file://"))
-//             pathUrl.remove("file://");
-//    }
-
-    qWarning("***********************************************************************************\n"
-             "** ELOKAB FILES MANAGER VERTION %s BY ABOUZAKARIA LICENCE GPL 3                  **\n"
-             "** ELOKAB FM WAS STARTED IN NORMAL MODE.                                         **\n"
-             "** IF YOU WANT TO SEE DEBUGGING INFORMATION, PLEASE USE:  elokab-fm --debug      **\n"
-             "***********************************************************************************\n"
-             , qPrintable(QApplication::applicationVersion()));
 
 Messages::debugMe(0,__LINE__,"MainWindow",__FUNCTION__);
     ui->setupUi(this);
@@ -684,5 +666,5 @@ void MainWindow::showAboutThis()
  **************************************************************************************/
 void MainWindow::showHelp()
 {
-     EMimIcon::launchApp("https://sourceforge.net/project/elokab/");
+     EMimIcon::launchApp("https://github.com/dragotin/ocfm");
 }
