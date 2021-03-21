@@ -25,6 +25,7 @@ namespace {
 
     QString thumbnailFilePath(const QString& basePath, const QString& file, Thumbnails::Size size) {
         QString tnFilePath {basePath};
+        if( !tnFilePath.endsWith('/')) tnFilePath.append("/");
 
         if (size == Thumbnails::Size::Normal)
             tnFilePath.append("normal/");
@@ -36,14 +37,6 @@ namespace {
             tnFilePath.append("xx-large/");
         else if( size == Thumbnails::Size::Fail)
             tnFilePath.append("fail/");
-
-        QDir fiDir(tnFilePath);
-        if (!fiDir.exists()) {
-            // try to create it.
-            if ( !fiDir.mkpath(tnFilePath)) {
-                qDebug() << "FATAL: Thumbnail path" << tnFilePath << " does not exist and can not be created!";
-            }
-        }
 
         tnFilePath.append(md5EncodedName(file));
         tnFilePath.append(".png");
